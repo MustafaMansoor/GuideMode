@@ -58,6 +58,9 @@ npm run agent:evaluate:smoke
 
 # Run the separate simple-baseline comparison
 npm run baseline:evaluate
+
+# Run Fair Baseline v1 with hidden-control compatibility
+npm run baseline:fair:evaluate
 ```
 
 Every run writes a JSON trajectory under `trajectories/`. Gemini receives only the
@@ -77,3 +80,7 @@ plain observe → Gemini action → Playwright execution loop with basic semanti
 controls, structured actions, and a 10-step limit. Evaluation ground truth stays
 outside its prompt. The frozen comparison result is documented in
 `BASELINE_RESULTS.md`.
+
+`fair-baseline-eval.js` preserves that simple architecture and adds only
+associated-label activation for visually hidden checkbox/radio controls. Its
+frozen result is documented in `FAIR_BASELINE_RESULTS.md`.
