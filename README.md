@@ -67,6 +67,9 @@ npm run focus:evaluate
 
 # Apply and validate GuideMode Visual Layer v1 across three goals
 npm run guidemode:visual:evaluate
+
+# Run the frozen system against the separate CivicPortal domain
+npm run civic:evaluate
 ```
 
 Every run writes a JSON trajectory under `trajectories/`. Gemini receives only the
@@ -99,3 +102,7 @@ GuideMode Visual Layer v1 lives under `guidemode/` and is exercised by
 `guidemode-visual-eval.js`. It adapts page salience reversibly and renders its
 control surface in Shadow DOM. See `GUIDEMODE_VISUAL_LAYER.md` for screenshots,
 safety results, metrics, and known limitations.
+
+`civic-portal/` is a separate fictional public-service SPA used for cross-domain
+generalization. Its unchanged-system benchmark and screenshots are documented in
+`CIVICPORTAL_CROSS_DOMAIN.md`.

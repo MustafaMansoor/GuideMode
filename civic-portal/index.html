@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CivicPortal is a fictional public-service portal used for safe interface research.">
+  <title>CivicPortal — Public services in one place</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="official-bar"><div><span class="crest" aria-hidden="true">CP</span><span>A fictional public-service demonstration</span></div><a href="#accessibility">Accessibility</a></div>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="CivicPortal home"><span>Civic</span>Portal</a>
+    <nav aria-label="Primary navigation">
+      <a href="#services">Services</a>
+      <a href="#departments">Departments</a>
+      <a href="#notices">Notices</a>
+      <a href="#help">Help and contact</a>
+    </nav>
+    <a class="account-link" href="#account">Sign in</a>
+  </header>
+  <div class="service-strip" aria-label="Popular service areas">
+    <a href="#transport">Transport &amp; licensing</a>
+    <a href="#health">Health services</a>
+    <a href="#housing">Housing</a>
+    <a href="#families">Families</a>
+    <a href="#business">Business</a>
+  </div>
+  <main id="app" tabindex="-1"></main>
+  <footer>
+    <div><a class="brand footer-brand" href="#home"><span>Civic</span>Portal</a><p>Clear access to fictional public services.</p><p class="synthetic-note">Demonstration only — no real applications or payments are processed.</p></div>
+    <div><h2>About</h2><a href="#departments">Departments</a><a href="#notices">Service notices</a><a href="#accessibility">Accessibility</a></div>
+    <div><h2>Support</h2><a href="#help">Contact support</a><a href="#help">Using online services</a><a href="#help">Privacy and security</a></div>
+  </footer>
+  <div id="liveStatus" class="sr-only" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

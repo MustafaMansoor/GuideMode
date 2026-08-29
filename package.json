@@ -12,7 +12,8 @@
     "baseline:evaluate": "node baseline-eval.js",
     "baseline:fair:evaluate": "node fair-baseline-eval.js",
     "focus:evaluate": "node focus-planner-eval.js",
-    "guidemode:visual:evaluate": "node guidemode-visual-eval.js"
+    "guidemode:visual:evaluate": "node guidemode-visual-eval.js",
+    "civic:evaluate": "node civic-eval.js"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
