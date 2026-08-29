@@ -1,0 +1,154 @@
+{
+  "evaluation_id": "9ba84d70-9a79-42c0-b27b-9ad9d647394f",
+  "component": "guidemode-visual-v1",
+  "model": "gemini-3.1-flash-lite",
+  "planner_prompt_version": "focus-planner-v1",
+  "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "created_at": "2026-08-29T18:13:50.165Z",
+  "cases": [
+    {
+      "case_id": "constrained",
+      "goal": "Find me a men's blue shirt in size small under $70.",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "planner": {
+        "model": "gemini-3.1-flash-lite",
+        "prompt_version": "focus-planner-v1",
+        "latency_ms": 14832,
+        "observation_count": 224,
+        "goal_summary": "Find a men's blue shirt in size small under $70.",
+        "safety_override_count": 3
+      },
+      "current_action": {
+        "ref": "e27",
+        "user_label": "Selecting S"
+      },
+      "metrics": {
+        "original_visible_interactive_elements": 101,
+        "relevant_interactive_elements": 7,
+        "directly_focused_interactive_elements": 7,
+        "protected_critical_consequential_elements": 6,
+        "deemphasized_interactive_elements": 88,
+        "focus_ratio": 0.06930693069306931,
+        "interactive_decision_space_reduction": 0.8712871287128713,
+        "current_target_ref": "e27",
+        "unsafe_visual_omissions": 0,
+        "restore_failures": 0
+      },
+      "visual_safety_failures": [],
+      "restore_failures": [],
+      "accessibility_check": {
+        "passed": true,
+        "failures": []
+      },
+      "screenshots": {
+        "original": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\constrained\\01-original.png",
+        "applied": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\constrained\\02-guidemode-applied.png",
+        "current_target": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\constrained\\03-current-target.png",
+        "restored_original": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\constrained\\04-restored-original.png"
+      }
+    },
+    {
+      "case_id": "broad",
+      "goal": "Find men's trousers.",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "planner": {
+        "model": "gemini-3.1-flash-lite",
+        "prompt_version": "focus-planner-v1",
+        "latency_ms": 15174,
+        "observation_count": 224,
+        "goal_summary": "The user wants to find men's trousers on the Threadly website.",
+        "safety_override_count": 3
+      },
+      "current_action": {
+        "ref": "e12",
+        "user_label": "Selecting Men"
+      },
+      "metrics": {
+        "original_visible_interactive_elements": 101,
+        "relevant_interactive_elements": 5,
+        "directly_focused_interactive_elements": 5,
+        "protected_critical_consequential_elements": 5,
+        "deemphasized_interactive_elements": 91,
+        "focus_ratio": 0.04950495049504951,
+        "interactive_decision_space_reduction": 0.900990099009901,
+        "current_target_ref": "e12",
+        "unsafe_visual_omissions": 0,
+        "restore_failures": 0
+      },
+      "visual_safety_failures": [],
+      "restore_failures": [],
+      "accessibility_check": {
+        "passed": true,
+        "failures": []
+      },
+      "screenshots": {
+        "original": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\broad\\01-original.png",
+        "applied": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\broad\\02-guidemode-applied.png",
+        "current_target": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\broad\\03-current-target.png",
+        "restored_original": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\broad\\04-restored-original.png"
+      }
+    },
+    {
+      "case_id": "impossible",
+      "goal": "Find a purple XXL shirt under $5.",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "planner": {
+        "model": "gemini-3.1-flash-lite",
+        "prompt_version": "focus-planner-v1",
+        "latency_ms": 19538,
+        "observation_count": 224,
+        "goal_summary": "Find a purple XXL shirt under $5.",
+        "safety_override_count": 3
+      },
+      "current_action": {
+        "ref": "e19",
+        "user_label": "Selecting Shirts"
+      },
+      "metrics": {
+        "original_visible_interactive_elements": 101,
+        "relevant_interactive_elements": 10,
+        "directly_focused_interactive_elements": 10,
+        "protected_critical_consequential_elements": 2,
+        "deemphasized_interactive_elements": 89,
+        "focus_ratio": 0.09900990099009901,
+        "interactive_decision_space_reduction": 0.8811881188118812,
+        "current_target_ref": "e19",
+        "unsafe_visual_omissions": 0,
+        "restore_failures": 0
+      },
+      "visual_safety_failures": [],
+      "restore_failures": [],
+      "accessibility_check": {
+        "passed": true,
+        "failures": []
+      },
+      "screenshots": {
+        "original": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\impossible\\01-original.png",
+        "applied": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\impossible\\02-guidemode-applied.png",
+        "current_target": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\impossible\\03-current-target.png",
+        "restored_original": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z\\impossible\\04-restored-original.png"
+      }
+    }
+  ],
+  "aggregate": {
+    "average_focus_ratio": 0.07260726072607261,
+    "average_interactive_decision_space_reduction": 0.8844884488448845,
+    "unsafe_visual_omissions": 0,
+    "restore_failures": 0,
+    "accessibility_failures": 0
+  },
+  "screenshot_root": "C:\\Users\\Mustafa\\Desktop\\micro\\mini-ecommerce-store\\artifacts\\guidemode-visual-2026-08-29T18-12-54-364Z"
+}

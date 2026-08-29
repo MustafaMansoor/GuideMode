@@ -64,6 +64,9 @@ npm run baseline:fair:evaluate
 
 # Evaluate the non-visual GuideMode Focus Planner
 npm run focus:evaluate
+
+# Apply and validate GuideMode Visual Layer v1 across three goals
+npm run guidemode:visual:evaluate
 ```
 
 Every run writes a JSON trajectory under `trajectories/`. Gemini receives only the
@@ -90,4 +93,9 @@ frozen result is documented in `FAIR_BASELINE_RESULTS.md`.
 
 The non-visual GuideMode decision layer lives in `focus-planner.js`; its separate
 five-case evaluation and frozen metrics are documented in
-`GUIDEMODE_FOCUS_PLANNER.md`. No CSS or visual adaptation is implemented yet.
+`GUIDEMODE_FOCUS_PLANNER.md`. That planner remains frozen and separate from rendering.
+
+GuideMode Visual Layer v1 lives under `guidemode/` and is exercised by
+`guidemode-visual-eval.js`. It adapts page salience reversibly and renders its
+control surface in Shadow DOM. See `GUIDEMODE_VISUAL_LAYER.md` for screenshots,
+safety results, metrics, and known limitations.
