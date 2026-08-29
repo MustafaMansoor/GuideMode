@@ -70,6 +70,12 @@ npm run guidemode:visual:evaluate
 
 # Run the frozen system against the separate CivicPortal domain
 npm run civic:evaluate
+
+# Validate the importable Agent Core v2 runtime without Gemini calls
+npm run agent:v2:test
+
+# Evaluate Agent Core v2 on both frozen benchmarks
+npm run agent:v2:evaluate
 ```
 
 Every run writes a JSON trajectory under `trajectories/`. Gemini receives only the
@@ -106,3 +112,8 @@ safety results, metrics, and known limitations.
 `civic-portal/` is a separate fictional public-service SPA used for cross-domain
 generalization. Its unchanged-system benchmark and screenshots are documented in
 `CIVICPORTAL_CROSS_DOMAIN.md`.
+
+The separate importable Agent Core v2 runtime lives under `agent-core-v2/`. Its
+semantic content extraction, resilient fresh-state executor, progress signatures,
+cycle detection, and Navigator/Replanner orchestration are documented in
+`AGENT_CORE_V2.md`.
