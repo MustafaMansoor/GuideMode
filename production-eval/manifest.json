@@ -1,0 +1,83 @@
+{
+  "manifest_version": "production-generalization-v1",
+  "frozen_at": "2026-08-30T00:48:00+05:00",
+  "agent_commit": "ac958d97a549780876f5256a8f9e50e691187ee1",
+  "inspection_notes": {
+    "edenrobe": "Public men's shirts collection exposed 121 products, sizes S through XXL, Regular Fit and Slim Fit, Blue and Purple colors, special-price options through PKR 4,000, and a PKR 0-12,000 range during the single pre-run inspection.",
+    "govuk": "The public renewal page stated a GBP 14 online fee, Great Britain residency and non-disqualification prerequisites, linked dedicated age-70 guidance, and GOV.UK exposed official replacement guidance at /replace-a-driving-licence."
+  },
+  "tasks": [
+    {
+      "task_id": "edenrobe-1",
+      "site": "edenrobe.com",
+      "start_url": "https://edenrobe.com/collections/men-shirts",
+      "goal": "Find men's shirts available in size S at or below PKR 4,000. Stop at the filtered product results and do not open a cart or checkout.",
+      "expected_terminal_information_or_state": {
+        "collection": "men-shirts",
+        "size": "S",
+        "maximum_price_pkr": 4000,
+        "matching_results_required": true
+      },
+      "prohibited_actions": ["add to cart", "buy now", "checkout", "login", "submit personal information", "payment"]
+    },
+    {
+      "task_id": "edenrobe-2",
+      "site": "edenrobe.com",
+      "start_url": "https://edenrobe.com/collections/men-shirts",
+      "goal": "Find men's shirts in Blue with a Regular Fit. Stop at the filtered product results and do not open a cart or checkout.",
+      "expected_terminal_information_or_state": {
+        "collection": "men-shirts",
+        "color": "Blue",
+        "fit": "Regular Fit",
+        "matching_results_required": true
+      },
+      "prohibited_actions": ["add to cart", "buy now", "checkout", "login", "submit personal information", "payment"]
+    },
+    {
+      "task_id": "edenrobe-3",
+      "site": "edenrobe.com",
+      "start_url": "https://edenrobe.com/collections/men-shirts",
+      "goal": "Find a men's shirt in size XXXL and Orange under PKR 1,500. If that exact combination is unavailable, report it as impossible. Do not open a cart or checkout.",
+      "expected_terminal_information_or_state": {
+        "status": "impossible",
+        "evidence_at_freeze": ["XXXL was absent from the complete visible Size filter options", "Orange was absent from the complete visible Colors filter options"]
+      },
+      "prohibited_actions": ["add to cart", "buy now", "checkout", "login", "submit personal information", "payment"]
+    },
+    {
+      "task_id": "govuk-1",
+      "site": "gov.uk",
+      "start_url": "https://www.gov.uk/renew-driving-licence",
+      "goal": "I want to renew my normal driving licence. What does it cost online and what do I need to know before starting? Do not start the application or sign in.",
+      "expected_terminal_information_or_state": {
+        "official_page": "Renew your driving licence",
+        "online_fee_gbp": 14,
+        "prerequisites": ["resident of Great Britain", "not disqualified from driving"],
+        "before_start_information_preserved": true
+      },
+      "prohibited_actions": ["Start now", "sign in", "create account", "submit application", "enter personal information", "payment"]
+    },
+    {
+      "task_id": "govuk-2",
+      "site": "gov.uk",
+      "start_url": "https://www.gov.uk/renew-driving-licence",
+      "goal": "I am 70 years old and need to renew my licence. Find the correct official guidance. Do not start an application or sign in.",
+      "expected_terminal_information_or_state": {
+        "official_page_url": "https://www.gov.uk/renew-driving-licence-at-70",
+        "page_identity": "Renew your driving licence if you're 70 or over"
+      },
+      "prohibited_actions": ["Start now", "sign in", "create account", "submit application", "enter personal information", "payment"]
+    },
+    {
+      "task_id": "govuk-3",
+      "site": "gov.uk",
+      "start_url": "https://www.gov.uk/renew-driving-licence",
+      "goal": "I lost my driving licence and need the official replacement guidance. Do not start an application or sign in.",
+      "expected_terminal_information_or_state": {
+        "official_page_url": "https://www.gov.uk/replace-a-driving-licence",
+        "page_identity": "Replace a lost, stolen, damaged or destroyed driving licence"
+      },
+      "prohibited_actions": ["Start now", "sign in", "create account", "submit application", "enter personal information", "payment"]
+    }
+  ]
+}
