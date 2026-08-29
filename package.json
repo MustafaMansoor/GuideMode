@@ -8,7 +8,8 @@
     "agent:one": "node agent-mvp.js --one",
     "agent:run": "node agent-mvp.js",
     "agent:evaluate": "node robustness-eval.js",
-    "agent:evaluate:smoke": "node robustness-eval.js --smoke"
+    "agent:evaluate:smoke": "node robustness-eval.js --smoke",
+    "baseline:evaluate": "node baseline-eval.js"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",

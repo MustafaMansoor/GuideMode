@@ -55,6 +55,9 @@ npm run agent:evaluate
 
 # Validate the harness and executor without API calls
 npm run agent:evaluate:smoke
+
+# Run the separate simple-baseline comparison
+npm run baseline:evaluate
 ```
 
 Every run writes a JSON trajectory under `trajectories/`. Gemini receives only the
@@ -66,3 +69,11 @@ The robustness suite includes already-satisfied, impossible, ambiguous-control,
 dynamic-rerender, and disabled-option cases. Its combined JSON report records the
 expected result before execution plus model/prompt metadata, per-step latency,
 errors, and retry counts.
+
+## Simple baseline
+
+`baseline-eval.js` is intentionally separate from Agent Core v1. It implements a
+plain observe → Gemini action → Playwright execution loop with basic semantic
+controls, structured actions, and a 10-step limit. Evaluation ground truth stays
+outside its prompt. The frozen comparison result is documented in
+`BASELINE_RESULTS.md`.
