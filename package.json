@@ -15,7 +15,8 @@
     "guidemode:visual:evaluate": "node guidemode-visual-eval.js",
     "civic:evaluate": "node civic-eval.js",
     "agent:v2:evaluate": "node agent-v2-eval.js",
-    "agent:v2:test": "node agent-core-v2/runtime.test.js"
+    "agent:v2:test": "node agent-core-v2/runtime.test.js",
+    "production:evaluate": "node production-eval/run.js"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
