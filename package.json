@@ -10,7 +10,8 @@
     "agent:evaluate": "node robustness-eval.js",
     "agent:evaluate:smoke": "node robustness-eval.js --smoke",
     "baseline:evaluate": "node baseline-eval.js",
-    "baseline:fair:evaluate": "node fair-baseline-eval.js"
+    "baseline:fair:evaluate": "node fair-baseline-eval.js",
+    "focus:evaluate": "node focus-planner-eval.js"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",

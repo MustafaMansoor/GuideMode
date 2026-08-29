@@ -61,6 +61,9 @@ npm run baseline:evaluate
 
 # Run Fair Baseline v1 with hidden-control compatibility
 npm run baseline:fair:evaluate
+
+# Evaluate the non-visual GuideMode Focus Planner
+npm run focus:evaluate
 ```
 
 Every run writes a JSON trajectory under `trajectories/`. Gemini receives only the
@@ -84,3 +87,7 @@ outside its prompt. The frozen comparison result is documented in
 `fair-baseline-eval.js` preserves that simple architecture and adds only
 associated-label activation for visually hidden checkbox/radio controls. Its
 frozen result is documented in `FAIR_BASELINE_RESULTS.md`.
+
+The non-visual GuideMode decision layer lives in `focus-planner.js`; its separate
+five-case evaluation and frozen metrics are documented in
+`GUIDEMODE_FOCUS_PLANNER.md`. No CSS or visual adaptation is implemented yet.
