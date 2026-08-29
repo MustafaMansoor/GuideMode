@@ -1,0 +1,2773 @@
+{
+  "evaluation_id": "e3f20f96-854c-41e6-bdf9-ca3299daddd5",
+  "model": "deterministic-smoke",
+  "prompt_version": "robustness-v1",
+  "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+  "started_at": "2026-08-28T20:01:09.169Z",
+  "finished_at": "2026-08-28T20:01:15.438Z",
+  "summary": {
+    "passed": 10,
+    "total": 10,
+    "success_rate": 100
+  },
+  "tasks": [
+    {
+      "trajectory_id": "76d4cbfc-5dc4-4a13-881c-5579583fbd3b",
+      "task_id": 1,
+      "goal": "Men's blue shirt, S, under $70",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:09.169Z",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true
+      },
+      "target_checkpoint": {
+        "department": "Men",
+        "category": "Shirts",
+        "size": "S",
+        "color": "Blue",
+        "maxPrice": 70
+      },
+      "fixture": "rerender-after-department",
+      "steps": [
+        {
+          "step": 1,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": false,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e2",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 110,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 2,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e9",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 77,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 3,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e17",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 42,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 4,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e33",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": false
+          },
+          "latency_ms": 34,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 5,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "fill",
+            "ref": "e42",
+            "value": "70",
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": true
+          },
+          "latency_ms": 35,
+          "errors": [],
+          "retry_count": 0
+        }
+      ],
+      "final_state": {
+        "department": true,
+        "category": true,
+        "size": true,
+        "color": true,
+        "maxPrice": true
+      },
+      "goal_status": "completed",
+      "reason": "checkpoint satisfied with matching results",
+      "action_count": 5,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:09.980Z"
+    },
+    {
+      "trajectory_id": "05c03faf-e147-4524-9e02-6f3ae02ddf75",
+      "task_id": 2,
+      "goal": "Women's black trousers, M, under $100",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:10.115Z",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true
+      },
+      "target_checkpoint": {
+        "department": "Women",
+        "category": "Trousers",
+        "size": "M",
+        "color": "Black",
+        "maxPrice": 100
+      },
+      "fixture": null,
+      "steps": [
+        {
+          "step": 1,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e15",
+              "id": null,
+              "role": "checkbox",
+              "name": "Trousers",
+              "value": "Trousers",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e18",
+              "id": null,
+              "role": "checkbox",
+              "name": "M",
+              "value": "M",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e29",
+              "id": null,
+              "role": "checkbox",
+              "name": "Black",
+              "value": "Black",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": false,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e3",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 87,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 2,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e15",
+              "id": null,
+              "role": "checkbox",
+              "name": "Trousers",
+              "value": "Trousers",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e18",
+              "id": null,
+              "role": "checkbox",
+              "name": "M",
+              "value": "M",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e29",
+              "id": null,
+              "role": "checkbox",
+              "name": "Black",
+              "value": "Black",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e15",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 59,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 3,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e15",
+              "id": null,
+              "role": "checkbox",
+              "name": "Trousers",
+              "value": "Trousers",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e18",
+              "id": null,
+              "role": "checkbox",
+              "name": "M",
+              "value": "M",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e29",
+              "id": null,
+              "role": "checkbox",
+              "name": "Black",
+              "value": "Black",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e18",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 29,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 4,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e15",
+              "id": null,
+              "role": "checkbox",
+              "name": "Trousers",
+              "value": "Trousers",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e18",
+              "id": null,
+              "role": "checkbox",
+              "name": "M",
+              "value": "M",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e29",
+              "id": null,
+              "role": "checkbox",
+              "name": "Black",
+              "value": "Black",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e29",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": false
+          },
+          "latency_ms": 26,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 5,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e15",
+              "id": null,
+              "role": "checkbox",
+              "name": "Trousers",
+              "value": "Trousers",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e18",
+              "id": null,
+              "role": "checkbox",
+              "name": "M",
+              "value": "M",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e29",
+              "id": null,
+              "role": "checkbox",
+              "name": "Black",
+              "value": "Black",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "fill",
+            "ref": "e42",
+            "value": "100",
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": true
+          },
+          "latency_ms": 30,
+          "errors": [],
+          "retry_count": 0
+        }
+      ],
+      "final_state": {
+        "department": true,
+        "category": true,
+        "size": true,
+        "color": true,
+        "maxPrice": true
+      },
+      "goal_status": "completed",
+      "reason": "checkpoint satisfied with matching results",
+      "action_count": 5,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:10.726Z"
+    },
+    {
+      "trajectory_id": "9a76e07a-7c26-4958-8a9d-cb2662d61fc4",
+      "task_id": 3,
+      "goal": "Men's white shirt, L, under $90",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:10.841Z",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true
+      },
+      "target_checkpoint": {
+        "department": "Men",
+        "category": "Shirts",
+        "size": "L",
+        "color": "White",
+        "maxPrice": 90
+      },
+      "fixture": null,
+      "steps": [
+        {
+          "step": 1,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e19",
+              "id": null,
+              "role": "checkbox",
+              "name": "L",
+              "value": "L",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e30",
+              "id": null,
+              "role": "checkbox",
+              "name": "White",
+              "value": "White",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": false,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e2",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 67,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 2,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e19",
+              "id": null,
+              "role": "checkbox",
+              "name": "L",
+              "value": "L",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e30",
+              "id": null,
+              "role": "checkbox",
+              "name": "White",
+              "value": "White",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e9",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 66,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 3,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e19",
+              "id": null,
+              "role": "checkbox",
+              "name": "L",
+              "value": "L",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e30",
+              "id": null,
+              "role": "checkbox",
+              "name": "White",
+              "value": "White",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e19",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 37,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 4,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e19",
+              "id": null,
+              "role": "checkbox",
+              "name": "L",
+              "value": "L",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e30",
+              "id": null,
+              "role": "checkbox",
+              "name": "White",
+              "value": "White",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e30",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": false
+          },
+          "latency_ms": 39,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 5,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e19",
+              "id": null,
+              "role": "checkbox",
+              "name": "L",
+              "value": "L",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e30",
+              "id": null,
+              "role": "checkbox",
+              "name": "White",
+              "value": "White",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "fill",
+            "ref": "e42",
+            "value": "90",
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": true
+          },
+          "latency_ms": 26,
+          "errors": [],
+          "retry_count": 0
+        }
+      ],
+      "final_state": {
+        "department": true,
+        "category": true,
+        "size": true,
+        "color": true,
+        "maxPrice": true
+      },
+      "goal_status": "completed",
+      "reason": "checkpoint satisfied with matching results",
+      "action_count": 5,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:11.533Z"
+    },
+    {
+      "trajectory_id": "88617b81-cd6d-45c9-94df-c908215a4da8",
+      "task_id": 4,
+      "goal": "Women's blue shirt, S, under $60",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:11.661Z",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "target_checkpoint": {
+        "department": "Women",
+        "category": "Shirts",
+        "size": "S",
+        "color": "Blue",
+        "maxPrice": 60
+      },
+      "fixture": null,
+      "steps": [
+        {
+          "step": 1,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": false,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e3",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 79,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 2,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e9",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 71,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 3,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e17",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": false,
+            "maxPrice": false
+          },
+          "latency_ms": 28,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 4,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e33",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": false
+          },
+          "latency_ms": 34,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 5,
+          "observation": [
+            {
+              "ref": "e3",
+              "id": null,
+              "role": "radio",
+              "name": "Women",
+              "value": "Women",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "fill",
+            "ref": "e42",
+            "value": "60",
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "size": true,
+            "color": true,
+            "maxPrice": true
+          },
+          "latency_ms": 27,
+          "errors": [],
+          "retry_count": 0
+        }
+      ],
+      "final_state": {
+        "department": true,
+        "category": true,
+        "size": true,
+        "color": true,
+        "maxPrice": true
+      },
+      "goal_status": "impossible",
+      "reason": "no matching result",
+      "action_count": 5,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:12.250Z"
+    },
+    {
+      "trajectory_id": "97dbd3d0-b976-4d82-bea2-f6e583907dc3",
+      "task_id": 5,
+      "goal": "Men's trousers under $50",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:12.360Z",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "target_checkpoint": {
+        "department": "Men",
+        "category": "Trousers",
+        "maxPrice": 50
+      },
+      "fixture": null,
+      "steps": [
+        {
+          "step": 1,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e15",
+              "id": null,
+              "role": "checkbox",
+              "name": "Trousers",
+              "value": "Trousers",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": false,
+            "category": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e2",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": false,
+            "maxPrice": false
+          },
+          "latency_ms": 74,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 2,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e15",
+              "id": null,
+              "role": "checkbox",
+              "name": "Trousers",
+              "value": "Trousers",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e15",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "maxPrice": false
+          },
+          "latency_ms": 70,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 3,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e15",
+              "id": null,
+              "role": "checkbox",
+              "name": "Trousers",
+              "value": "Trousers",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "department": true,
+            "category": true,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "fill",
+            "ref": "e42",
+            "value": "50",
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "department": true,
+            "category": true,
+            "maxPrice": true
+          },
+          "latency_ms": 23,
+          "errors": [],
+          "retry_count": 0
+        }
+      ],
+      "final_state": {
+        "department": true,
+        "category": true,
+        "maxPrice": true
+      },
+      "goal_status": "impossible",
+      "reason": "no matching result",
+      "action_count": 3,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:12.853Z"
+    },
+    {
+      "trajectory_id": "27b701ab-4b6d-4309-a62c-4a3fb2add1e8",
+      "task_id": 6,
+      "goal": "Any small shirt under $80",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:12.961Z",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true
+      },
+      "target_checkpoint": {
+        "category": "Shirts",
+        "size": "S",
+        "maxPrice": 80
+      },
+      "fixture": "ambiguous-small",
+      "steps": [
+        {
+          "step": 1,
+          "observation": [
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            },
+            {
+              "ref": "e43",
+              "id": null,
+              "role": "checkbox",
+              "name": "Small",
+              "value": "Small",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Promotions"
+            }
+          ],
+          "checkpoint_before": {
+            "category": false,
+            "size": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e9",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "category": true,
+            "size": false,
+            "maxPrice": false
+          },
+          "latency_ms": 86,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 2,
+          "observation": [
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            },
+            {
+              "ref": "e43",
+              "id": null,
+              "role": "checkbox",
+              "name": "Small",
+              "value": "Small",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Promotions"
+            }
+          ],
+          "checkpoint_before": {
+            "category": true,
+            "size": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e17",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "category": true,
+            "size": true,
+            "maxPrice": false
+          },
+          "latency_ms": 42,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 3,
+          "observation": [
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            },
+            {
+              "ref": "e43",
+              "id": null,
+              "role": "checkbox",
+              "name": "Small",
+              "value": "Small",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Promotions"
+            }
+          ],
+          "checkpoint_before": {
+            "category": true,
+            "size": true,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e43",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "category": true,
+            "size": true,
+            "maxPrice": false
+          },
+          "latency_ms": 57,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 4,
+          "observation": [
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "S",
+              "value": "S",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            },
+            {
+              "ref": "e43",
+              "id": null,
+              "role": "checkbox",
+              "name": "Small",
+              "value": "Small",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Promotions"
+            }
+          ],
+          "checkpoint_before": {
+            "category": true,
+            "size": true,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "fill",
+            "ref": "e42",
+            "value": "80",
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "category": true,
+            "size": true,
+            "maxPrice": true
+          },
+          "latency_ms": 25,
+          "errors": [],
+          "retry_count": 0
+        }
+      ],
+      "final_state": {
+        "category": true,
+        "size": true,
+        "maxPrice": true
+      },
+      "goal_status": "completed",
+      "reason": "checkpoint satisfied with matching results",
+      "action_count": 4,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:13.526Z"
+    },
+    {
+      "trajectory_id": "1152b45f-a032-492f-9419-2fe0a056aedc",
+      "task_id": 7,
+      "goal": "Blue clothing under $40",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:13.638Z",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "target_checkpoint": {
+        "color": "Blue",
+        "maxPrice": 40
+      },
+      "fixture": null,
+      "steps": [
+        {
+          "step": 1,
+          "observation": [
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "color": false,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "check",
+            "ref": "e33",
+            "value": null,
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "color": true,
+            "maxPrice": false
+          },
+          "latency_ms": 63,
+          "errors": [],
+          "retry_count": 0
+        },
+        {
+          "step": 2,
+          "observation": [
+            {
+              "ref": "e33",
+              "id": null,
+              "role": "checkbox",
+              "name": "Blue",
+              "value": "Blue",
+              "checked": true,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Color"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint_before": {
+            "color": true,
+            "maxPrice": false
+          },
+          "model_response": {
+            "action": "fill",
+            "ref": "e42",
+            "value": "40",
+            "reason": "smoke"
+          },
+          "checkpoint_after": {
+            "color": true,
+            "maxPrice": true
+          },
+          "latency_ms": 36,
+          "errors": [],
+          "retry_count": 0
+        }
+      ],
+      "final_state": {
+        "color": true,
+        "maxPrice": true
+      },
+      "goal_status": "impossible",
+      "reason": "no matching result",
+      "action_count": 2,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:14.170Z"
+    },
+    {
+      "trajectory_id": "6b4dcbf6-d35d-4444-b6ce-bd5a8859651f",
+      "task_id": 8,
+      "goal": "Find a purple XXL shirt under $5",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:14.273Z",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "target_checkpoint": {
+        "category": "Shirts",
+        "size": "XXL",
+        "color": "Purple",
+        "maxPrice": 5
+      },
+      "fixture": null,
+      "steps": [
+        {
+          "step": 1,
+          "observation": [
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint": {
+            "category": false,
+            "size": false,
+            "color": false,
+            "maxPrice": false
+          },
+          "result_count": 40,
+          "model_response": {
+            "action": "impossible",
+            "ref": null,
+            "value": null,
+            "reason": "required control unavailable"
+          },
+          "latency_ms": 0,
+          "errors": [],
+          "retry_count": 0
+        }
+      ],
+      "final_state": {
+        "category": false,
+        "size": false,
+        "color": false,
+        "maxPrice": false
+      },
+      "goal_status": "impossible",
+      "reason": "required control unavailable",
+      "action_count": 0,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:14.545Z"
+    },
+    {
+      "trajectory_id": "896089c6-26b9-4b78-b340-c090f9638c91",
+      "task_id": 9,
+      "goal": "Show men's clothing (Men is already selected)",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:14.653Z",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true,
+        "max_actions": 0
+      },
+      "target_checkpoint": {
+        "department": "Men"
+      },
+      "fixture": null,
+      "steps": [],
+      "final_state": {
+        "department": true
+      },
+      "goal_status": "completed",
+      "reason": "checkpoint satisfied with matching results",
+      "action_count": 0,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:14.966Z"
+    },
+    {
+      "trajectory_id": "d9294e29-9b06-4d6a-b47c-a9391fc7b066",
+      "task_id": 10,
+      "goal": "Men's small shirts under $70, but Small is disabled",
+      "model": "deterministic-smoke",
+      "prompt_version": "robustness-v1",
+      "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+      "started_at": "2026-08-28T20:01:15.068Z",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "target_checkpoint": {
+        "department": "Men",
+        "category": "Shirts",
+        "size": "S",
+        "maxPrice": 70
+      },
+      "fixture": "disabled-small",
+      "steps": [
+        {
+          "step": 1,
+          "observation": [
+            {
+              "ref": "e2",
+              "id": null,
+              "role": "radio",
+              "name": "Men",
+              "value": "Men",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Department"
+            },
+            {
+              "ref": "e9",
+              "id": null,
+              "role": "checkbox",
+              "name": "Shirts",
+              "value": "Shirts",
+              "checked": false,
+              "disabled": false,
+              "min": null,
+              "max": null,
+              "group_context": "Category"
+            },
+            {
+              "ref": "e17",
+              "id": null,
+              "role": "checkbox",
+              "name": "Small",
+              "value": "S",
+              "checked": false,
+              "disabled": true,
+              "min": null,
+              "max": null,
+              "group_context": "Size"
+            },
+            {
+              "ref": "e42",
+              "id": "priceRange",
+              "role": "slider",
+              "name": "Up to $150",
+              "value": "150",
+              "checked": null,
+              "disabled": false,
+              "min": "20",
+              "max": "150",
+              "group_context": "Price"
+            }
+          ],
+          "checkpoint": {
+            "department": false,
+            "category": false,
+            "size": false,
+            "maxPrice": false
+          },
+          "result_count": 40,
+          "model_response": {
+            "action": "impossible",
+            "ref": null,
+            "value": null,
+            "reason": "required control unavailable"
+          },
+          "latency_ms": 0,
+          "errors": [],
+          "retry_count": 0
+        }
+      ],
+      "final_state": {
+        "department": false,
+        "category": false,
+        "size": false,
+        "maxPrice": false
+      },
+      "goal_status": "impossible",
+      "reason": "required control unavailable",
+      "action_count": 0,
+      "passed": true,
+      "finished_at": "2026-08-28T20:01:15.331Z"
+    }
+  ]
+}

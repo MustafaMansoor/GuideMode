@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Threadly — a small, fully interactive frontend fashion store.">
+  <title>Threadly — Everyday Style</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="announcement">Free shipping on orders over $75 <span>•</span> Easy 30-day returns</div>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="Threadly home">THREADLY<span>.</span></a>
+    <nav class="main-nav" aria-label="Main navigation">
+      <button data-department="All" class="active">New</button>
+      <button data-department="Men">Men</button>
+      <button data-department="Women">Women</button>
+      <button data-department="Unisex">Essentials</button>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-button" id="searchToggle" aria-label="Search">⌕</button>
+      <button class="cart-button" id="cartToggle" aria-label="Open shopping bag">Bag <span id="cartCount">0</span></button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">THE EVERYDAY EDIT · 2026</p>
+        <h1>Good clothes.<br>Made simple.</h1>
+        <p>Easy layers, considered colors, and everyday fits designed to work together.</p>
+        <button class="primary-button" id="shopCollection">Shop the collection →</button>
+      </div>
+      <div class="hero-art" aria-label="Abstract clothing collection artwork">
+        <div class="shape shape-one"><span>NEW<br>FOR<br>NOW</span></div>
+        <div class="shape shape-two"></div>
+        <div class="shape shape-three"></div>
+      </div>
+    </section>
+
+    <section class="shop" id="shop">
+      <div class="shop-heading">
+        <div>
+          <p class="eyebrow">CURATED FOR YOU</p>
+          <h2>Shop all</h2>
+        </div>
+        <p id="resultCount">40 products</p>
+      </div>
+
+      <div class="search-panel" id="searchPanel" hidden>
+        <label for="searchInput">Search the collection</label>
+        <div><input id="searchInput" type="search" placeholder="Try “linen shirt” or “green”…" autocomplete="off"><button id="clearSearch">Clear</button></div>
+      </div>
+
+      <div class="catalog-layout">
+        <aside class="filters" id="filters">
+          <div class="filter-title"><strong>Filters</strong><button id="clearFilters">Clear all</button></div>
+          <fieldset>
+            <legend>Department</legend>
+            <label><input type="radio" name="department" value="All" checked> All</label>
+            <label><input type="radio" name="department" value="Men"> Men</label>
+            <label><input type="radio" name="department" value="Women"> Women</label>
+            <label><input type="radio" name="department" value="Unisex"> Unisex</label>
+          </fieldset>
+          <fieldset>
+            <legend>Category</legend>
+            <div id="categoryFilters"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Size</legend>
+            <div class="size-filter" id="sizeFilters"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Color</legend>
+            <div class="color-filter" id="colorFilters"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Price</legend>
+            <label class="price-range"><input id="priceRange" type="range" min="20" max="150" value="150"><span>Up to <b id="priceValue">$150</b></span></label>
+          </fieldset>
+        </aside>
+
+        <div class="catalog">
+          <div class="catalog-tools">
+            <button class="filter-mobile" id="filterToggle">Filters +</button>
+            <label>Sort by
+              <select id="sortSelect">
+                <option value="featured">Featured</option>
+                <option value="newest">Newest</option>
+                <option value="low">Price: Low to high</option>
+                <option value="high">Price: High to low</option>
+                <option value="rating">Top rated</option>
+              </select>
+            </label>
+          </div>
+          <div class="product-grid" id="productGrid"></div>
+          <div class="empty-state" id="emptyState" hidden><h3>No pieces found</h3><p>Try changing or clearing your filters.</p><button class="secondary-button" id="emptyClear">Clear filters</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div><a class="brand" href="#">THREADLY<span>.</span></a><p>Thoughtful basics for everyday life.</p></div>
+    <div><strong>Shop</strong><a href="#shop">New arrivals</a><a href="#shop">Men</a><a href="#shop">Women</a></div>
+    <div><strong>Help</strong><a href="#">Shipping</a><a href="#">Returns</a><a href="#">Contact</a></div>
+    <div class="newsletter"><strong>Good things, occasionally.</strong><p>New drops and thoughtful notes.</p><form id="newsletterForm"><input type="email" required placeholder="Email address"><button aria-label="Subscribe">→</button></form><small id="newsletterMessage"></small></div>
+  </footer>
+
+  <div class="overlay" id="overlay" hidden></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+    <div class="drawer-header"><h2>Your bag <span id="drawerCount">(0)</span></h2><button id="cartClose" aria-label="Close bag">×</button></div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-empty" id="cartEmpty"><div>◇</div><h3>Your bag is empty</h3><p>Consider it a blank canvas.</p><button class="secondary-button" id="continueShopping">Keep shopping</button></div>
+    <div class="cart-footer" id="cartFooter" hidden>
+      <div class="shipping-progress"><p id="shippingText"></p><div><span id="shippingBar"></span></div></div>
+      <div class="subtotal"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
+      <p>Taxes and shipping calculated at checkout.</p>
+      <button class="primary-button" id="checkoutButton">Checkout</button>
+    </div>
+  </aside>
+
+  <dialog class="product-modal" id="productModal">
+    <button class="modal-close" id="modalClose" aria-label="Close product details">×</button>
+    <div class="modal-image" id="modalImage"></div>
+    <div class="modal-content">
+      <p class="eyebrow" id="modalDepartment"></p>
+      <h2 id="modalName"></h2>
+      <div class="modal-price"><strong id="modalPrice"></strong><span id="modalRating"></span></div>
+      <p id="modalDescription"></p>
+      <fieldset><legend>Color: <b id="selectedColor"></b></legend><div class="option-colors" id="modalColors"></div></fieldset>
+      <fieldset><legend>Size: <b id="selectedSize">Select a size</b></legend><div class="option-sizes" id="modalSizes"></div></fieldset>
+      <p class="modal-error" id="modalError"></p>
+      <button class="primary-button" id="addToCart">Add to bag</button>
+      <ul><li>Free shipping over $75</li><li>30-day easy returns</li><li>Secure checkout</li></ul>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>

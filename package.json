@@ -1,0 +1,20 @@
+{
+  "name": "threadly-semantic-extractor",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "extract": "node extract-elements.js",
+    "agent:smoke": "node agent-mvp.js --smoke",
+    "agent:one": "node agent-mvp.js --one",
+    "agent:run": "node agent-mvp.js",
+    "agent:evaluate": "node robustness-eval.js",
+    "agent:evaluate:smoke": "node robustness-eval.js --smoke"
+  },
+  "dependencies": {
+    "@google/genai": "^1.30.0",
+    "dotenv": "^17.2.3"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}
