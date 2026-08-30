@@ -107,7 +107,7 @@ async function runLoop(session) {
       session.debug.targetName = decision.target_name || decision.action.reason || decision.action.ref;
       message(session, decision.message || decision.action.reason || 'Working on the next step…'); announce(session);
 
-      const executed = await sendTab(session.tabId, { type: M.EXECUTE, action: decision.action });
+      const executed = await sendTab(session.tabId, { type: M.EXECUTE, action: { ...decision.action, observation_id: observation.observation_id } });
       if (!executed?.ok) throw new Error(executed?.error || 'Page action failed');
       if (executed.result?.paused) {
         session.paused = true; session.status = C.STATUS.PAUSED; session.lastExecution = executed.result;
@@ -115,9 +115,13 @@ async function runLoop(session) {
       }
       const fresh = await sendTab(session.tabId, { type: M.OBSERVE });
       const progress = fresh?.observation?.progress_signature !== observation.progress_signature;
+      const previousUrl = new URL(observation.page.url); const nextUrl = new URL(fresh?.observation?.page?.url || observation.page.url);
       session.semanticProgress = progress;
       session.lastExecution = { ...executed.result, previous_progress_signature: observation.progress_signature,
-        new_progress_signature: fresh?.observation?.progress_signature || observation.progress_signature, semantic_progress: progress };
+        new_progress_signature: fresh?.observation?.progress_signature || observation.progress_signature, semantic_progress: progress,
+        previous_url: previousUrl.href, next_url: nextUrl.href, pathname_changed: previousUrl.pathname !== nextUrl.pathname,
+        query_changed: previousUrl.search !== nextUrl.search, heading_changed: observation.page.heading !== fresh?.observation?.page?.heading,
+        route_candidate_selected: decision.action.action === 'navigate_route' ? decision.action.ref : null };
       session.debug.actionSuccess = Boolean(executed.result?.action_success);
       session.debug.semanticProgress = progress;
       session.currentAction = null;

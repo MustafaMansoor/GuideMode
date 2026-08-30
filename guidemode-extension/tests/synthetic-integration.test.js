@@ -45,8 +45,8 @@ async function act(page, action) { return page.evaluate(value => globalThis.__Gu
     const civic = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     await civic.goto(pathToFileURL(path.join(__dirname, '..', '..', 'civic-portal', 'index.html')).href); await install(civic);
     observation = await observe(civic);
-    let replacement = observation.controls.find(item => item.role === 'link' && item.name.includes('Replace a lost driving licence'));
-    assert(replacement); assert.equal((await act(civic, { action: 'click', ref: replacement.ref })).action_success, true);
+    let replacement = observation.routes.find(item => item.text.includes('Replace a lost driving licence'));
+    assert(replacement, `Replacement route missing: ${JSON.stringify(observation.routes.slice(0,12))}`); assert.equal((await act(civic, { action: 'navigate_route', ref: replacement.ref, observation_id: observation.observation_id })).action_success, true);
     await civic.waitForTimeout(100); observation = await observe(civic);
     const start = observation.controls.find(item => item.name === 'Start replacement request'); assert(start);
     assert.equal((await act(civic, { action: 'click', ref: start.ref })).action_success, true);

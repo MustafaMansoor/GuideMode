@@ -7,8 +7,11 @@
     OBSERVE: 'GM_OBSERVE', EXECUTE: 'GM_EXECUTE', APPLY_PLAN: 'GM_APPLY_PLAN',
     CLEAR_PLAN: 'GM_CLEAR_PLAN'
   };
-  const ACTIONS = new Set(['click', 'fill', 'check', 'uncheck', 'select', 'scroll', 'focus']);
+  const ACTIONS = new Set(['click', 'fill', 'check', 'uncheck', 'select', 'scroll', 'focus', 'navigate_route', 'submit_form']);
   let refMap = new Map();
+  let routeMap = new Map();
+  let formMap = new Map();
+  let currentObservationId = null;
   let currentPlan = null;
   let visualEnabled = false;
   let styleElement = null;
@@ -62,12 +65,38 @@
     return { actions: [...new Set(actions)], editable_combobox: editableCombobox };
   };
 
+  function normalizeRoute(rawHref) {
+    const raw = clean(rawHref, 2000);
+    if (!raw || raw === '#' || /^(javascript|data|blob|mailto|tel):/i.test(raw)) return null;
+    if (raw.startsWith('#') && raw.length > 1) {
+      const href = `${location.href.split('#')[0]}${raw}`;
+      return { href, pathname: location.pathname || '/', search: location.search || '', hash: raw, same_origin: true };
+    }
+    try {
+      const url = new URL(raw, location.href);
+      if (!['http:', 'https:'].includes(url.protocol)) return null;
+      url.username = ''; url.password = '';
+      return { href: url.href, pathname: url.pathname || '/', search: url.search || '', hash: url.hash || '', same_origin: url.origin === location.origin };
+    } catch { return null; }
+  }
+
+  function activeInteractionRoot() {
+    const dialogs = [...document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"],[aria-modal="true"]')].filter(isRendered);
+    return dialogs.at(-1) || document;
+  }
+
   function observe() {
     clearVisualAttributes();
     refMap = new Map();
+    routeMap = new Map();
+    formMap = new Map();
+    currentObservationId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+    const interactionRoot = activeInteractionRoot();
+    const modalScoped = interactionRoot !== document;
     const roles = new Set(['button','link','checkbox','radio','slider','textbox','searchbox','spinbutton','combobox','listbox']);
-    const nodes = [...new Set(document.querySelectorAll('button,a[href],input,select,textarea,summary,[contenteditable="true"],[role]'))]
-      .filter(element => isSemanticVisible(element) && roles.has(element.getAttribute('role') || implicitRole(element)));
+    const nodes = [...new Set(interactionRoot.querySelectorAll('button,input,select,textarea,summary,[contenteditable="true"],[role]'))]
+      .filter(element => isSemanticVisible(element) && roles.has(element.getAttribute('role') || implicitRole(element)))
+      .filter(element => !((element.getAttribute('role') || implicitRole(element)) === 'link' && element.hasAttribute('href')));
     const controls = nodes.slice(0, 240).map((element, index) => {
       const ref = `e${index + 1}`;
       refMap.set(ref, element);
@@ -86,6 +115,32 @@
         group_context: groupContext(element), options, capabilities: controlCapabilities(element, role)
       };
     });
+
+    const rawRouteNodes = [...interactionRoot.querySelectorAll('a[href],[role="link"][href]')];
+    const deduplicatedRoutes = new Map();
+    for (const element of rawRouteNodes) {
+      const normalized = normalizeRoute(element.getAttribute('href'));
+      if (!normalized) continue;
+      const candidate = { text: accessibleName(element), context: groupContext(element), source: 'anchor', ...normalized };
+      const key = normalized.href;
+      const existing = deduplicatedRoutes.get(key);
+      const richness = item => clean(`${item.text} ${item.context}`).length + (item.text ? 80 : 0) - (/footer/i.test(item.context) ? 30 : 0);
+      if (!existing || richness(candidate) > richness(existing)) deduplicatedRoutes.set(key, candidate);
+    }
+    const routes = [...deduplicatedRoutes.values()].slice(0, 160).map((route, index) => {
+      const ref = `r${index + 1}`; routeMap.set(ref, route); return { ref, ...route };
+    });
+
+    const forms = [];
+    for (const form of [...interactionRoot.querySelectorAll('form')].filter(isRendered).slice(0, 30)) {
+      const method = clean(form.method || 'get').toUpperCase();
+      const normalized = normalizeRoute(form.getAttribute('action') || location.href);
+      if (!normalized) continue;
+      const ref = `f${forms.length + 1}`; formMap.set(ref, form);
+      const controlRefs = controls.filter(control => form.contains(refMap.get(control.ref))).map(control => control.ref).slice(0, 30);
+      forms.push({ ref, method, action: normalized.href, same_origin: normalized.same_origin,
+        purpose: accessibleName(form) || groupContext(form), controls: controlRefs, auto_submittable: method === 'GET' && normalized.same_origin });
+    }
 
     const selectors = [
       'main h1','main h2','main h3','main p','main li','main [role="alert"]','main [role="status"]','main [role="note"]',
@@ -115,7 +170,9 @@
       status: content.filter(c => ['heading','alert','status','validation','note','fee_or_price'].includes(c.type)).map(c => `${c.type}:${c.text}`)
     };
     const progress_signature = hash(JSON.stringify(signaturePayload));
-    return { page, controls, content, summary: { heading: page.heading, control_count: controls.length, content_count: content.length }, progress_signature };
+    return { observation_id: currentObservationId, page, controls, content, routes, forms,
+      route_summary: { raw_link_count: rawRouteNodes.length, unique_route_count: routes.length, same_origin_count: routes.filter(route => route.same_origin).length },
+      summary: { heading: page.heading, control_count: controls.length, content_count: content.length, route_count: routes.length, form_count: forms.length, modal_scoped: modalScoped }, progress_signature };
   }
 
   function hash(value) {
@@ -166,7 +223,11 @@
 
   function isConsequential(control) {
     const text = `${control?.name || ''} ${control?.group_context || ''}`.toLowerCase();
-    return /\b(buy now|add to (cart|bag)|checkout|pay|payment|place order|submit|approve.{0,8}submit|confirm (appointment|booking|order)|book|booking|transfer|delete|send|purchase)\b/.test(text);
+    return /\b(start now|buy now|add to (cart|bag)|checkout|pay|payment|place order|submit|approve.{0,8}submit|confirm (appointment|booking|order)|book|booking|transfer|delete|send|purchase)\b/.test(text);
+  }
+  function routeIsConsequential(route) {
+    return /\b(log[ -]?out|sign[ -]?out|delete|remove account|unsubscribe|checkout|payment|purchase|confirm order|close account)\b/i
+      .test(`${route?.text || ''} ${route?.pathname || ''} ${route?.context || ''}`);
   }
   function isSensitive(control, action) {
     const text = `${control?.name || ''} ${control?.type || ''} ${control?.group_context || ''}`.toLowerCase();
@@ -186,6 +247,28 @@
   }
   async function execute(action) {
     if (!action || !ACTIONS.has(action.action)) return { action_success: false, execution_error: 'Unsupported bounded action' };
+    if (action.action === 'navigate_route') {
+      if (!action.observation_id || action.observation_id !== currentObservationId) return { action_success: false, execution_failure_type: 'stale_route_ref', execution_error: 'Route ref is from an expired observation' };
+      const route = routeMap.get(action.ref);
+      if (!route) return { action_success: false, execution_failure_type: 'stale_route_ref', execution_error: 'Route ref is stale or unknown; re-observation required' };
+      if (!route.same_origin) return { action_success: false, paused: true, pause_reason: 'external_route', target_name: route.text };
+      if (routeIsConsequential(route)) return { action_success: false, paused: true, pause_reason: 'consequential_route', target_name: route.text };
+      const previous_url = location.href; setTimeout(() => location.assign(route.href), 0);
+      return { action_success: true, executor_strategy: 'observed-route-navigation', navigation_started: true, route_ref: action.ref,
+        previous_url, requested_url: route.href, target_name: route.text };
+    }
+    if (action.action === 'submit_form') {
+      if (!action.observation_id || action.observation_id !== currentObservationId) return { action_success: false, execution_failure_type: 'stale_form_ref', execution_error: 'Form ref is from an expired observation' };
+      const form = formMap.get(action.ref);
+      if (!form?.isConnected) return { action_success: false, execution_failure_type: 'stale_form_ref', execution_error: 'Form ref is stale or unknown; re-observation required' };
+      const method = clean(form.method || 'get').toUpperCase();
+      if (method !== 'GET') return { action_success: false, paused: true, pause_reason: 'non_get_form', target_name: accessibleName(form) || groupContext(form) };
+      const target = normalizeRoute(form.getAttribute('action') || location.href);
+      if (!target?.same_origin) return { action_success: false, paused: true, pause_reason: 'external_form', target_name: accessibleName(form) || groupContext(form) };
+      const previous_url = location.href; setTimeout(() => form.requestSubmit(), 0);
+      return { action_success: true, executor_strategy: 'native-get-form-submit', navigation_started: true, form_ref: action.ref,
+        previous_url, requested_url: target.href, target_name: accessibleName(form) || groupContext(form) };
+    }
     const node = refMap.get(action.ref);
     if (!node?.isConnected) return { action_success: false, execution_error: 'Ref is stale or unknown; re-observation required' };
     const role = node.getAttribute('role') || implicitRole(node);
@@ -197,6 +280,22 @@
     try {
       if (action.action === 'click') {
         if (!['button', 'link'].includes(role)) throw new Error(`click is incompatible with ${role}`);
+        if (isRendered(node)) {
+          const rect = node.getBoundingClientRect(); const x = Math.max(0, Math.min(innerWidth - 1, rect.left + rect.width / 2));
+          const y = Math.max(0, Math.min(innerHeight - 1, rect.top + rect.height / 2)); const top = document.elementFromPoint(x, y);
+          if (top && top !== node && !node.contains(top) && !top.contains(node)) return { action_success: false, execution_failure_type: 'obstructed',
+            execution_error: 'Another element is intercepting this control', executor_strategy: 'topmost-click-check', target_name: control.name };
+        }
+        const submitForm = node.form && node.matches('button:not([type]),button[type="submit"],input[type="submit"],input[type="image"]') ? node.form : null;
+        if (submitForm) {
+          const method = clean(submitForm.method || 'get').toUpperCase();
+          if (method !== 'GET') return { action_success: false, paused: true, pause_reason: 'non_get_form', target_name: control.name };
+          const target = normalizeRoute(submitForm.getAttribute('action') || location.href);
+          if (!target?.same_origin) return { action_success: false, paused: true, pause_reason: 'external_form', target_name: control.name };
+          const previous_url = location.href; setTimeout(() => submitForm.requestSubmit(node), 0);
+          return { action_success: true, executor_strategy: 'native-get-form-submitter', navigation_started: true, previous_url,
+            requested_url: target.href, target_name: control.name };
+        }
         node.click();
       } else if (action.action === 'fill') {
         const editableCombo = role === 'combobox' && node.tagName !== 'SELECT' && !node.readOnly;
@@ -244,5 +343,5 @@
   });
 
   // Test-only API; it contains no selectors or privileged behavior and is not used by the agent.
-  globalThis.__GuideModeTest = { observe, execute, applyVisualPlan, setVisualMode, isConsequential, isSensitive };
+  globalThis.__GuideModeTest = { observe, execute, applyVisualPlan, setVisualMode, isConsequential, isSensitive, normalizeRoute, routeIsConsequential };
 })();

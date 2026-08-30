@@ -18,7 +18,7 @@ const { chromium } = require('playwright');
     const extensionId = new URL(workerUrl).host;
     const panel = await context.newPage(); await panel.goto(`chrome-extension://${extensionId}/sidepanel.html`);
     assert.equal(await panel.locator('h1').textContent(), 'GuideMode');
-    assert.equal(await panel.locator('#start').textContent(), 'Start GuideMode');
+    assert.equal(await panel.locator('#start').textContent(), 'Start');
     console.log(`GuideMode MV3 load check PASS (${extensionId})`);
   } finally { await context.close(); fs.rmSync(userDataDir, { recursive: true, force: true }); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

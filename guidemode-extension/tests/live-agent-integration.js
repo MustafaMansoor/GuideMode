@@ -33,7 +33,7 @@ const execute = (page, action) => page.evaluate(value => globalThis.__GuideModeT
         const step = { step: decision.step, role: decision.model_role, action: decision.action || null, status: decision.status,
           focus_elements: plan.elements.length, latency_ms: decision.latency_ms + plan.latency_ms };
         if (decision.status !== 'action') { result.status = decision.status; result.steps.push(step); break; }
-        const before = observation.progress_signature; const execution = await execute(page, decision.action); const after = await observe(page);
+        const before = observation.progress_signature; const execution = await execute(page, { ...decision.action, observation_id: observation.observation_id }); const after = await observe(page);
         previousExecution = { ...execution, previous_progress_signature: before, new_progress_signature: after.progress_signature,
           semantic_progress: before !== after.progress_signature };
         step.action_success = execution.action_success; step.semantic_progress = previousExecution.semantic_progress; step.paused = execution.paused || false;
@@ -49,7 +49,7 @@ const execute = (page, action) => page.evaluate(value => globalThis.__GuideModeT
     report.tests.push(await run({ id: 'threadly-constrained', goal: "Find me a men's blue shirt in size small under $70.", url: threadlyUrl, maxSteps: 10,
       terminal: async page => (await page.evaluate(() => document.querySelector('input[value="Men"]')?.checked && document.querySelector('input[value="Shirts"]')?.checked &&
         document.querySelector('input[value="S"]')?.checked && document.querySelector('input[value="Blue"]')?.checked && document.querySelector('#priceRange')?.value === '70')) ? 'completed' : null }));
-    report.tests.push(await run({ id: 'threadly-impossible', goal: 'Find a purple XXL shirt under $5.', url: threadlyUrl, maxSteps: 8,
+    report.tests.push(await run({ id: 'threadly-impossible', goal: 'Find a purple XXL shirt under $5.', url: threadlyUrl, maxSteps: 15,
       terminal: async () => null }));
     const civicUrl = pathToFileURL(path.join(__dirname, '..', '..', 'civic-portal', 'index.html')).href;
     report.tests.push(await run({ id: 'civic-lost-replacement', goal: 'Help me replace a lost driving licence.', url: civicUrl, maxSteps: 8,

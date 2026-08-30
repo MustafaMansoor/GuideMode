@@ -1,45 +1,14 @@
-const M = globalThis.GuideModeMessages;
-const els = Object.fromEntries(['status','conversation','goal','start','stop','continue','visual-enabled','original','connection','retry',
-  'debug-session','debug-step','debug-url','debug-role','debug-action','debug-target','debug-success','debug-progress','debug-replans','debug-latency']
-  .map(id => [id, document.getElementById(id)]));
-let state = null;
-
-const labels = { ready: 'Ready', running: 'Working…', paused: 'Waiting for you', stopped: 'Stopped', completed: 'Complete', impossible: 'Complete', error: 'Connection error' };
-function render(next) {
-  state = next;
-  const status = next?.status || 'ready'; els.status.dataset.status = status; els.status.lastChild.textContent = labels[status] || status;
-  const history = next?.history || [];
-  els.conversation.innerHTML = history.length ? history.map(item => `<article class="message ${item.kind === 'user' ? 'user' : 'assistant'}">${escapeHtml(item.text)}</article>`).join('') :
-    '<article class="message assistant">Tell me what you want to do on this page. I’ll guide the page and pause before sensitive or consequential steps.</article>';
-  els.conversation.scrollTop = els.conversation.scrollHeight;
-  const running = status === 'running', paused = status === 'paused' || status === 'error';
-  els.start.hidden = running || paused; els.stop.hidden = !running; els.continue.hidden = !paused;
-  els.goal.disabled = running || paused; if (next?.goal) els.goal.value = next.goal;
-  els.connection.hidden = !next?.connectionError;
-  els.original.disabled = !next; els.original.textContent = next?.visualMode === false ? 'Return to GuideMode' : 'Show original page';
-  els['visual-enabled'].checked = next?.visualMode !== false;
-  const debug = next?.debug || {};
-  els['debug-session'].textContent = next?.sessionId || '—'; els['debug-step'].textContent = next?.step ?? 0;
-  els['debug-url'].textContent = debug.currentUrl || '—'; els['debug-role'].textContent = debug.role || '—';
-  els['debug-action'].textContent = debug.lastAction || '—'; els['debug-target'].textContent = debug.targetName || '—';
-  els['debug-success'].textContent = debug.actionSuccess == null ? '—' : String(debug.actionSuccess);
-  els['debug-progress'].textContent = debug.semanticProgress == null ? '—' : String(debug.semanticProgress);
-  els['debug-replans'].textContent = debug.replans ?? 0; els['debug-latency'].textContent = debug.latencyMs == null ? '—' : `${debug.latencyMs} ms`;
-}
-function escapeHtml(text) { const span = document.createElement('span'); span.textContent = String(text); return span.innerHTML; }
-async function command(type, extra = {}) {
-  const response = await chrome.runtime.sendMessage({ type, ...extra });
-  if (!response?.ok) throw new Error(response?.error || 'GuideMode command failed');
-  if (response.state !== undefined) render(response.state);
-  return response;
-}
-els.start.addEventListener('click', async () => { try { await command(M.START, { goal: els.goal.value, visualMode: els['visual-enabled'].checked }); } catch (e) { showError(e); } });
-els.stop.addEventListener('click', () => command(M.STOP).catch(showError));
-els.continue.addEventListener('click', () => command(M.CONTINUE).catch(showError));
-els.retry.addEventListener('click', () => command(M.RETRY_CONNECTION).then(() => { els.connection.hidden = true; }).catch(showError));
-async function toggleVisual(enabled) { try { await command(M.SET_VISUAL_MODE, { enabled }); } catch (e) { showError(e); } }
-els['visual-enabled'].addEventListener('change', () => toggleVisual(els['visual-enabled'].checked));
-els.original.addEventListener('click', () => toggleVisual(state?.visualMode === false));
-function showError(error) { render({ ...(state || {}), status: 'error', connectionError: error.message, history: [...(state?.history || []), { kind: 'assistant', text: error.message }] }); }
-chrome.runtime.onMessage.addListener(message => { if (message.type === M.STATE_CHANGED) render(message.state); });
-command(M.GET_STATE).catch(showError);
+const M=globalThis.GuideModeMessages;
+const ids=['status','page-context','empty-state','session-view','current-goal','activity','result','manual-step','manual-copy','goal-form','goal','start','stop','continue','visual-enabled','original','connection','retry','edit-goal','debug-session','debug-step','debug-url','debug-role','debug-action','debug-target','debug-success','debug-progress','debug-replans','debug-latency'];
+const els=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));let state=null;
+const statusLabels={ready:'Ready',running:'Working',paused:'Waiting',stopped:'Stopped',completed:'Complete',impossible:'Complete',error:'Connection error'};
+function pageContext(url){try{return new URL(url).hostname.replace(/^www\./,'')||'Current tab'}catch{return'Current tab'}}
+function compactHistory(history=[]){const result=[];for(const item of history.filter(item=>item.kind!=='user'))if(!result.length||result.at(-1).text!==item.text)result.push(item);return result.slice(-8)}
+function rowState(index,total,status){if(index<total-1)return'success';if(status==='running')return'active';if(status==='paused')return'needs-user';if(status==='error')return'failed';if(status==='stopped')return'warning';return'success'}
+function icon(value){return value==='success'?'✓':value==='active'?'•':value==='needs-user'||value==='warning'?'!':value==='failed'?'×':'·'}
+function render(next){state=next;const status=next?.status||'ready',hasSession=Boolean(next?.sessionId);els.status.dataset.status=status;els.status.querySelector('.status-label').textContent=statusLabels[status]||status;els['page-context'].textContent=pageContext(next?.debug?.currentUrl);els['empty-state'].hidden=hasSession;els['session-view'].hidden=!hasSession;
+  if(hasSession){els['current-goal'].textContent=next.goal;const rows=compactHistory(next.history);els.activity.innerHTML='';rows.forEach((item,index)=>{const value=rowState(index,rows.length,status),li=document.createElement('li');li.className=`activity-row ${value}`;li.innerHTML=`<span class="activity-icon" aria-hidden="true">${icon(value)}</span><p class="activity-copy"></p>`;li.querySelector('p').textContent=item.text;els.activity.append(li)});const terminal=['completed','impossible'].includes(status);els.result.hidden=!terminal;if(terminal)els.result.textContent=rows.at(-1)?.text||(status==='impossible'?'No suitable path was found.':'Task complete.');els['manual-step'].hidden=status!=='paused'&&status!=='error';els['manual-copy'].textContent=rows.at(-1)?.text||'GuideMode paused before a sensitive or consequential action.';els.stop.hidden=status!=='running';els.continue.hidden=status!=='paused'&&status!=='error';els.original.textContent=next.visualMode===false?'Return to GuideMode':'Show original page';els['visual-enabled'].checked=next.visualMode!==false;els['visual-enabled'].nextElementSibling.nextElementSibling.textContent=next.visualMode===false?'Off':'On'}
+  els.connection.hidden=!next?.connectionError;els.goal.disabled=status==='running';els.start.disabled=status==='running';els.start.textContent=hasSession?'Send':'Start';const debug=next?.debug||{};els['debug-session'].textContent=next?.sessionId||'—';els['debug-step'].textContent=next?.step??0;els['debug-url'].textContent=debug.currentUrl||'—';els['debug-role'].textContent=debug.role||'—';els['debug-action'].textContent=debug.lastAction||'—';els['debug-target'].textContent=debug.targetName||'—';els['debug-success'].textContent=debug.actionSuccess==null?'—':String(debug.actionSuccess);els['debug-progress'].textContent=debug.semanticProgress==null?'—':String(debug.semanticProgress);els['debug-replans'].textContent=debug.replans??0;els['debug-latency'].textContent=debug.latencyMs==null?'—':`${debug.latencyMs} ms`}
+async function command(type,extra={}){const response=await chrome.runtime.sendMessage({type,...extra});if(!response?.ok)throw new Error(response?.error||'GuideMode command failed');if(response.state!==undefined)render(response.state);return response}
+function showError(error){render({...(state||{}),status:'error',connectionError:error.message,history:[...(state?.history||[]),{kind:'assistant',text:error.message}]})}
+els['goal-form'].addEventListener('submit',event=>{event.preventDefault();command(M.START,{goal:els.goal.value,visualMode:els['visual-enabled'].checked}).then(()=>{els.goal.value=''}).catch(showError)});document.querySelectorAll('[data-suggestion]').forEach(button=>button.addEventListener('click',()=>{els.goal.value=button.dataset.suggestion;els.goal.focus()}));els.stop.addEventListener('click',()=>command(M.STOP).catch(showError));els.continue.addEventListener('click',()=>command(M.CONTINUE).catch(showError));els.retry.addEventListener('click',()=>command(M.RETRY_CONNECTION).then(()=>{els.connection.hidden=true}).catch(showError));els['edit-goal'].addEventListener('click',async()=>{if(state?.status==='running')await command(M.STOP);els.goal.value=state?.goal||'';els.goal.focus()});async function toggleVisual(enabled){try{await command(M.SET_VISUAL_MODE,{enabled})}catch(error){showError(error)}}els['visual-enabled'].addEventListener('change',()=>toggleVisual(els['visual-enabled'].checked));els.original.addEventListener('click',()=>toggleVisual(state?.visualMode===false));els.goal.addEventListener('input',()=>{els.goal.style.height='auto';els.goal.style.height=`${Math.min(95,els.goal.scrollHeight)}px`});chrome.runtime.onMessage.addListener(message=>{if(message.type===M.STATE_CHANGED)render(message.state)});globalThis.__GuideModePanelTest={render};command(M.GET_STATE).catch(showError);

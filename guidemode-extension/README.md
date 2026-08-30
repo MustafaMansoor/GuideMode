@@ -2,6 +2,8 @@
 
 GuideMode is a local-development Chrome/Edge Manifest V3 extension. It observes the current HTTP/HTTPS tab semantically, asks a local Agent Core v2 adapter for one bounded action, executes that action in the tab, and can lower the visual salience of unrelated page elements without removing them.
 
+Route Scout keeps links and GET forms separate from ordinary controls. It normalizes and deduplicates observed routes, sends only strongly matched candidates to the Navigator, and navigates only through fresh opaque route/form refs. It never accepts a model-authored URL or query string.
+
 ## Requirements
 
 - Node.js 20 or newer
@@ -55,3 +57,4 @@ Open any ordinary HTTP/HTTPS page, select the GuideMode toolbar icon to open the
 - This extension adapter preserves v2's Navigator/Replanner principles but is not the Playwright benchmark runtime.
 - It pauses instead of completing authentication, CAPTCHA, personal-data, payment, purchase, submission, or other consequential steps.
 - Semantic observation is bounded and may omit unusually complex custom canvas or closed-shadow-DOM interfaces.
+- External, destructive-looking, POST, authentication, and transactional routes/forms pause for human review.

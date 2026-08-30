@@ -1,12 +1,13 @@
 const { GoogleGenAI, Type } = require('@google/genai');
 const { ProgressTracker } = require('../agent-core-v2/progress');
+const { searchRoutes } = require('./route-scout');
 
 // Directly reused from frozen v2: ProgressTracker semantics.
 // Adapted from frozen v2: Navigator/Replanner roles and bounded one-action contract.
 // Extension-specific: observations/actions arrive over HTTP rather than Playwright.
 const VERSION = 'guidemode-extension-v2-adapter';
 const PROMPT_VERSION = 'agent-core-v2-extension-adapter-v1';
-const ACTIONS = ['click','check','uncheck','fill','select','scroll','focus','impossible'];
+const ACTIONS = ['click','check','uncheck','fill','select','scroll','focus','navigate_route','submit_form','impossible'];
 const actionSchema = { type: Type.OBJECT, properties: {
   action: { type: Type.STRING, enum: ACTIONS }, ref: { type: Type.STRING, nullable: true },
   value: { type: Type.STRING, nullable: true }, reason: { type: Type.STRING },
@@ -21,14 +22,28 @@ const replanSchema = { type: Type.OBJECT, properties: {
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 const clean = value => String(value || '').replace(/\s+/g, ' ').trim();
-const actionIdentity = (action, controls) => {
+const actionIdentity = (action, controls, routes = [], forms = []) => {
   if (!action || action.action === 'impossible') return action?.action || 'none';
   const control = controls.find(item => item.ref === action.ref);
+  const route = routes.find(item => item.ref === action.ref);
+  const form = forms.find(item => item.ref === action.ref);
+  if (route) return `navigate_route|${route.href}`;
+  if (form) return `submit_form|${form.method}|${form.action}`;
   return control ? [action.action, control.role, clean(control.name).toLowerCase(), clean(control.group_context).toLowerCase(), action.value || ''].join('|') : `${action.action}:unknown:${action.ref}`;
 };
-function validateAction(action, controls) {
+function validateAction(action, controls, routes = [], forms = []) {
   if (!action || !ACTIONS.includes(action.action)) throw new Error('unsupported action');
   if (action.action === 'impossible') return null;
+  if (action.action === 'navigate_route') {
+    const route = routes.find(item => item.ref === action.ref);
+    if (!route) throw new Error(`unknown route ref ${action.ref}`);
+    return route;
+  }
+  if (action.action === 'submit_form') {
+    const form = forms.find(item => item.ref === action.ref);
+    if (!form) throw new Error(`unknown form ref ${action.ref}`);
+    return form;
+  }
   const control = controls.find(item => item.ref === action.ref);
   if (!control) throw new Error(`unknown ref ${action.ref}`);
   if (control.disabled) throw new Error(`control ${action.ref} is disabled`);
@@ -36,8 +51,8 @@ function validateAction(action, controls) {
   if (['fill','select'].includes(action.action) && typeof action.value !== 'string') throw new Error(`${action.action} requires a string value`);
   return control;
 }
-const consequential = control => /\b(buy now|add to (cart|bag)|checkout|pay|payment|place order|submit|approve.{0,8}submit|confirm (appointment|booking|order)|book|booking|transfer|delete|send|purchase)\b/i
-  .test(`${control?.name || ''} ${control?.group_context || ''}`);
+const consequential = control => /\b(start now|buy now|add to (cart|bag)|checkout|pay|payment|place order|submit|approve.{0,8}submit|confirm (appointment|booking|order)|book|booking|transfer|delete|send|purchase|log[ -]?out|sign[ -]?out|remove account|unsubscribe|close account)\b/i
+  .test(`${control?.name || ''} ${control?.text || ''} ${control?.purpose || ''} ${control?.pathname || ''} ${control?.action || ''} ${control?.group_context || ''}`);
 const sensitive = (control, action) => control?.type === 'password' || (action === 'fill' && /\b(password|passcode|otp|one.time|captcha|card number|cvv|national insurance|identity number|passport number|government id|licen[cs]e number|email|phone|telephone|date of birth|full (legal )?name|street address|postcode)\b/i
   .test(`${control?.name || ''} ${control?.group_context || ''}`));
 
@@ -48,7 +63,7 @@ class ExtensionV2Adapter {
   }
   createSession({ sessionId, goal, tabId, maxSteps = 18 }) {
     const state = { sessionId, goal, tabId, maxSteps, step: 0, tracker: new ProgressTracker({ cycleThreshold: 2 }), activeSubgoal: null,
-      avoidActions: [], lastObservation: null, lastActionIdentity: null, replans: 0, stopped: false,
+      avoidActions: [], lastObservation: null, lastActionIdentity: null, replans: 0, stopped: false, routeHistory: new Set(),
       trajectory: { trajectory_id: sessionId, version: VERSION, source_agent: 'agent-core-v2', source_commit: 'ac958d97a549780876f5256a8f9e50e691187ee1',
         prompt_version: PROMPT_VERSION, goal, model: this.model, tab_id: tabId, started_at: new Date().toISOString(), steps: [], navigator_calls: 0,
         replanner_calls: 0, human_pauses: 0, errors: [], usage: { prompt_tokens: 0, candidate_tokens: 0, total_tokens: 0 } } };
@@ -69,10 +84,18 @@ class ExtensionV2Adapter {
     return { value: JSON.parse(response.text), latency_ms: Date.now() - started };
   }
   navigatorPrompt(state, observation, feedback) {
-    return `You are the Navigator in a browser agent. Choose exactly one safe browser action toward the user's goal.\n\nUSER GOAL:\n${state.goal}\n${state.activeSubgoal ? `\nCURRENT SUBGOAL FROM REPLANNER:\n${state.activeSubgoal}\n` : ''}\nPAGE:\n${JSON.stringify(observation.page)}\n\nINTERACTIVE CONTROLS:\n${JSON.stringify(observation.controls)}\n\nRELEVANT SEMANTIC CONTENT BLOCKS:\n${JSON.stringify(observation.content)}\n\nRECENT ACTIONS AND PROGRESS:\n${JSON.stringify(state.tracker.recentActions)}\n\nACTIONS TO AVOID:\n${JSON.stringify(state.avoidActions)}\n\nChoose one action using only a supplied e-ref. The control capabilities.actions field is authoritative. Never invent selectors, XPath, JavaScript, or refs. Read eligibility, requirements, fees, warnings, validation, and status content before acting. Use scroll/focus only when it materially reveals or prepares a supplied control. Return impossible only when visible page evidence establishes that no suitable route exists and plausible routes on the page have been considered; cite supplied refs. Never execute final purchase, payment, submission, confirmation, deletion, booking approval, authentication, or personal-data sending. Those steps require a human.${feedback ? `\n\nVALIDATION FEEDBACK:\n${feedback}` : ''}`;
+    const routeCandidates = searchRoutes(state.activeSubgoal || state.goal, observation.routes || [], { limit: 12, visited: state.routeHistory });
+    const getForms = (observation.forms || []).filter(form => form.method === 'GET' && form.auto_submittable).slice(0, 8);
+    state.lastRouteCandidates = routeCandidates;
+    const routeContext = routeCandidates.length || getForms.length ? `\n\nTOP OBSERVED ROUTE CANDIDATES:\n${JSON.stringify(routeCandidates)}\n\nSAFE GET FORMS:\n${JSON.stringify(getForms)}` : '';
+    const routeGuidance = routeCandidates.length || getForms.length ? ' navigate_route accepts only a supplied r-ref and submit_form accepts only a supplied f-ref; never invent a URL or query string. Prefer a strong same-origin route candidate when it directly advances the goal. Submit only listed safe GET forms after configuring their controls.' : '';
+    const refKind = routeCandidates.length || getForms.length ? 'ref' : 'e-ref';
+    return `You are the Navigator in a browser agent. Choose exactly one safe browser action toward the user's goal.\n\nUSER GOAL:\n${state.goal}\n${state.activeSubgoal ? `\nCURRENT SUBGOAL FROM REPLANNER:\n${state.activeSubgoal}\n` : ''}\nPAGE:\n${JSON.stringify(observation.page)}\n\nINTERACTIVE CONTROLS:\n${JSON.stringify(observation.controls)}${routeContext}\n\nRELEVANT SEMANTIC CONTENT BLOCKS:\n${JSON.stringify(observation.content)}\n\nRECENT ACTIONS AND PROGRESS:\n${JSON.stringify(state.tracker.recentActions)}\n\nACTIONS TO AVOID:\n${JSON.stringify(state.avoidActions)}\n\nChoose one action using only a supplied ${refKind}. The control capabilities.actions field is authoritative. Never invent selectors, XPath, JavaScript, or refs.${routeGuidance} Read eligibility, requirements, fees, warnings, validation, and status content before acting. Use scroll/focus only when it materially reveals or prepares a supplied control. Return impossible only when visible page evidence establishes that no suitable route exists and plausible routes on the page have been considered; cite supplied refs. Never execute final purchase, payment, submission, confirmation, deletion, booking approval, authentication, or personal-data sending. Those steps require a human.${feedback ? `\n\nVALIDATION FEEDBACK:\n${feedback}` : ''}`;
   }
   async replan(state, observation, reason) {
-    const prompt = `You are the Replanner in a browser agent under a deterministic orchestrator. Diagnose a stall without taking a browser action.\n\nORIGINAL GOAL:\n${state.goal}\n\nCURRENT PAGE:\n${JSON.stringify(observation.page)}\n\nINTERACTIVE CONTROLS:\n${JSON.stringify(observation.controls)}\n\nSEMANTIC CONTENT BLOCKS:\n${JSON.stringify(observation.content)}\n\nRECENT ACTIONS:\n${JSON.stringify(state.tracker.recentActions)}\n\nSTALL REASON:\n${reason}\n\nReturn continue with a distinct next_subgoal and concrete action descriptions to avoid, goal_impossible only if page evidence proves no suitable path exists, or needs_human for a consequential, authentication, sensitive, or ambiguous boundary. Ground conclusions in supplied refs.`;
+    const routes = searchRoutes(state.goal, observation.routes || [], { limit: 10, visited: state.routeHistory });
+    const routeContext = routes.length ? `\n\nTOP OBSERVED ROUTES:\n${JSON.stringify(routes)}` : '';
+    const prompt = `You are the Replanner in a browser agent under a deterministic orchestrator. Diagnose a stall without taking a browser action.\n\nORIGINAL GOAL:\n${state.goal}\n\nCURRENT PAGE:\n${JSON.stringify(observation.page)}\n\nINTERACTIVE CONTROLS:\n${JSON.stringify(observation.controls)}${routeContext}\n\nSEMANTIC CONTENT BLOCKS:\n${JSON.stringify(observation.content)}\n\nRECENT ACTIONS:\n${JSON.stringify(state.tracker.recentActions)}\n\nSTALL REASON:\n${reason}\n\nReturn continue with a distinct next_subgoal and concrete action descriptions to avoid, goal_impossible only if page evidence proves no suitable path exists, or needs_human for a consequential, authentication, sensitive, or ambiguous boundary. Ground conclusions in supplied refs.`;
     const response = await this.generate(state, 'replanner', prompt, replanSchema); state.replans++;
     if (response.value.status === 'continue') { state.activeSubgoal = response.value.next_subgoal; state.avoidActions = [...new Set([...state.avoidActions, ...response.value.avoid_actions])].slice(-8); }
     return response;
@@ -110,7 +133,7 @@ class ExtensionV2Adapter {
     let response, feedback = null, control = null;
     for (let attempt = 0; attempt < 2; attempt++) {
       response = await this.generate(state, 'navigator', this.navigatorPrompt(state, observation, feedback), actionSchema);
-      try { control = validateAction(response.value, observation.controls); break; }
+      try { control = validateAction(response.value, observation.controls, observation.routes, observation.forms); break; }
       catch (error) { feedback = error.message; if (attempt === 1) throw error; }
     }
     state.step++;
@@ -122,22 +145,27 @@ class ExtensionV2Adapter {
       return status === 'continue' ? this.step({ sessionId, goal, tabId, observation, previousExecution: null, maxSteps }) :
         { status, step: state.step, model_role: 'replanner', replans: state.replans, latency_ms: response.latency_ms + replanned.latency_ms, message: replanned.value.diagnosis };
     }
-    if (consequential(control) || sensitive(control, action.action)) {
+    const routeOrFormPause = action.action === 'navigate_route' && !control.same_origin || action.action === 'submit_form' && (control.method !== 'GET' || !control.auto_submittable);
+    if (routeOrFormPause || consequential(control) || sensitive(control, action.action)) {
       state.trajectory.human_pauses++; state.trajectory.steps.push({ step: state.step, observation_summary: observation.summary, model_role: 'navigator', model_action: action, human_pause: true });
       return { status: 'needs_human', pause: true, step: state.step, action, target_name: control.name, model_role: 'navigator', replans: state.replans,
         latency_ms: response.latency_ms, message: "You're at a step that needs your review. Please complete it yourself, then press Continue." };
     }
-    state.lastActionIdentity = actionIdentity(action, observation.controls);
+    state.lastActionIdentity = actionIdentity(action, observation.controls, observation.routes, observation.forms);
+    if (action.action === 'navigate_route') state.routeHistory.add(control.href);
     state.trajectory.steps.push({ step: state.step, tab_url: observation.page.url, observation_summary: observation.summary,
-      semantic_content_count: observation.content.length, model_role: 'navigator', model_action: action, target: { ref: action.ref, name: control?.name || null }, latency_ms: response.latency_ms });
+      semantic_content_count: observation.content.length, raw_route_count: observation.route_summary?.raw_link_count || 0,
+      unique_route_count: observation.routes?.length || 0, route_candidates_sent: state.lastRouteCandidates || [], model_role: 'navigator', model_action: action,
+      target: { ref: action.ref, name: control?.name || control?.text || control?.purpose || null }, latency_ms: response.latency_ms });
     return { status: 'action', step: state.step, action, target_name: control?.name || null, model_role: 'navigator', replans: state.replans,
-      latency_ms: response.latency_ms, message: userMessage(action, control) };
+      latency_ms: response.latency_ms, route_candidates: state.lastRouteCandidates || [], message: userMessage(action, control) };
   }
 }
 function userMessage(action, control) {
   const name = clean(control?.name || action.reason || 'the next part');
   return ({ click: `Opening ${name}.`, check: `Selecting ${name}.`, uncheck: `Clearing ${name}.`, fill: `Entering the requested information in ${name}.`,
-    select: `Choosing an option in ${name}.`, scroll: `Bringing ${name} into view.`, focus: `Focusing ${name}.` })[action.action] || 'Working on the next step.';
+    select: `Choosing an option in ${name}.`, scroll: `Bringing ${name} into view.`, focus: `Focusing ${name}.`,
+    navigate_route: `Opening ${clean(control?.text || name)}.`, submit_form: `Applying ${clean(control?.purpose || name)}.` })[action.action] || 'Working on the next step.';
 }
 
-module.exports = { ExtensionV2Adapter, VERSION, PROMPT_VERSION, validateAction, consequential, sensitive };
+module.exports = { ExtensionV2Adapter, VERSION, PROMPT_VERSION, validateAction, consequential, sensitive, actionIdentity };

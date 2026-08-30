@@ -4,3 +4,4 @@ trajectories/*.json
 artifacts/guidemode-visual-*/
 artifacts/civic-evaluation-*/
 guidemode-extension-server/trajectories/*.json
+artifacts/guidemode-extension-ui-*/
