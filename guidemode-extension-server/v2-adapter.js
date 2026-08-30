@@ -1,6 +1,7 @@
 const { GoogleGenAI, Type } = require('@google/genai');
 const { ProgressTracker } = require('../agent-core-v2/progress');
 const { searchRoutes } = require('./route-scout');
+const { TERMINAL, createRequestSnapshot, invalidRef } = require('./ref-lifecycle');
 
 // Directly reused from frozen v2: ProgressTracker semantics.
 // Adapted from frozen v2: Navigator/Replanner roles and bounded one-action contract.
@@ -22,6 +23,11 @@ const replanSchema = { type: Type.OBJECT, properties: {
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 const clean = value => String(value || '').replace(/\s+/g, ' ').trim();
+function compactModelContent(observation, routeCandidates = []) {
+  const repeated = new Set([...(observation.controls || []).map(item => clean(item.name).toLowerCase()),
+    ...routeCandidates.map(item => clean(item.text).toLowerCase())].filter(Boolean));
+  return (observation.content || []).filter(item => !['paragraph','list_item'].includes(item.type) || !repeated.has(clean(item.text).toLowerCase()));
+}
 const actionIdentity = (action, controls, routes = [], forms = []) => {
   if (!action || action.action === 'impossible') return action?.action || 'none';
   const control = controls.find(item => item.ref === action.ref);
@@ -32,23 +38,23 @@ const actionIdentity = (action, controls, routes = [], forms = []) => {
   return control ? [action.action, control.role, clean(control.name).toLowerCase(), clean(control.group_context).toLowerCase(), action.value || ''].join('|') : `${action.action}:unknown:${action.ref}`;
 };
 function validateAction(action, controls, routes = [], forms = []) {
-  if (!action || !ACTIONS.includes(action.action)) throw new Error('unsupported action');
+  if (!action || !ACTIONS.includes(action.action)) return { ok: false, code: 'INVALID_ACTION', recoverable: false };
   if (action.action === 'impossible') return null;
   if (action.action === 'navigate_route') {
     const route = routes.find(item => item.ref === action.ref);
-    if (!route) throw new Error(`unknown route ref ${action.ref}`);
+    if (!route) return invalidRef(action);
     return route;
   }
   if (action.action === 'submit_form') {
     const form = forms.find(item => item.ref === action.ref);
-    if (!form) throw new Error(`unknown form ref ${action.ref}`);
+    if (!form) return invalidRef(action);
     return form;
   }
   const control = controls.find(item => item.ref === action.ref);
-  if (!control) throw new Error(`unknown ref ${action.ref}`);
-  if (control.disabled) throw new Error(`control ${action.ref} is disabled`);
-  if (!control.capabilities?.actions?.includes(action.action)) throw new Error(`${action.action} incompatible with ${control.role}`);
-  if (['fill','select'].includes(action.action) && typeof action.value !== 'string') throw new Error(`${action.action} requires a string value`);
+  if (!control) return invalidRef(action);
+  if (control.disabled) return { ok: false, code: 'DISABLED', ref: action.ref, recoverable: false };
+  if (!control.capabilities?.actions?.includes(action.action)) return { ok: false, code: 'INCOMPATIBLE_ACTION', ref: action.ref, recoverable: false };
+  if (['fill','select'].includes(action.action) && typeof action.value !== 'string') return { ok: false, code: 'MISSING_VALUE', ref: action.ref, recoverable: false };
   return control;
 }
 const consequential = control => /\b(start now|buy now|add to (cart|bag)|checkout|pay|payment|place order|submit|approve.{0,8}submit|confirm (appointment|booking|order)|book|booking|transfer|delete|send|purchase|log[ -]?out|sign[ -]?out|remove account|unsubscribe|close account)\b/i
@@ -63,13 +69,15 @@ class ExtensionV2Adapter {
   }
   createSession({ sessionId, goal, tabId, maxSteps = 18 }) {
     const state = { sessionId, goal, tabId, maxSteps, step: 0, tracker: new ProgressTracker({ cycleThreshold: 2 }), activeSubgoal: null,
-      avoidActions: [], lastObservation: null, lastActionIdentity: null, replans: 0, stopped: false, routeHistory: new Set(),
+      avoidActions: [], lastObservation: null, lastActionIdentity: null, replans: 0, stopped: false, status: 'running', generation: 1,
+      inFlightRequestId: null, routeHistory: new Set(),
       trajectory: { trajectory_id: sessionId, version: VERSION, source_agent: 'agent-core-v2', source_commit: 'ac958d97a549780876f5256a8f9e50e691187ee1',
         prompt_version: PROMPT_VERSION, goal, model: this.model, tab_id: tabId, started_at: new Date().toISOString(), steps: [], navigator_calls: 0,
         replanner_calls: 0, human_pauses: 0, errors: [], usage: { prompt_tokens: 0, candidate_tokens: 0, total_tokens: 0 } } };
     this.sessions.set(sessionId, state); return state;
   }
-  stop(sessionId) { const state = this.sessions.get(sessionId); if (state) { state.stopped = true; state.trajectory.final_status = 'stopped'; state.trajectory.finished_at = new Date().toISOString(); } return state; }
+  stop(sessionId, generation) { const state = this.sessions.get(sessionId); if (state) { state.stopped = true; state.status = 'stopped'; state.generation = Math.max(state.generation + 1, Number(generation || 0)); state.inFlightRequestId = null; state.trajectory.final_status = 'stopped'; state.trajectory.finished_at = new Date().toISOString(); } return state; }
+  markTerminal(sessionId, status, generation) { const state = this.sessions.get(sessionId); if (state && TERMINAL.has(status)) { state.stopped = true; state.status = status; state.generation = Math.max(state.generation + 1, Number(generation || 0)); state.inFlightRequestId = null; state.trajectory.final_status = status; } return state; }
   async pace() {
     const interval = Math.ceil(60000 / this.requestsPerMinute) + 250;
     const pacing = Math.max(0, interval - (Date.now() - this.lastCallAt)); if (pacing) await wait(pacing);
@@ -81,16 +89,20 @@ class ExtensionV2Adapter {
     const response = await this.ai.models.generateContent({ model: this.model, contents, config: { temperature: 0, responseMimeType: 'application/json', responseSchema: schema } });
     const usage = response.usageMetadata || {}; state.trajectory.usage.prompt_tokens += usage.promptTokenCount || 0;
     state.trajectory.usage.candidate_tokens += usage.candidatesTokenCount || 0; state.trajectory.usage.total_tokens += usage.totalTokenCount || 0;
-    return { value: JSON.parse(response.text), latency_ms: Date.now() - started };
+    return { value: JSON.parse(response.text), latency_ms: Date.now() - started, usage: { prompt_tokens: usage.promptTokenCount ?? null,
+      candidate_tokens: usage.candidatesTokenCount ?? null, total_tokens: usage.totalTokenCount ?? null }, request_chars: contents.length };
   }
   navigatorPrompt(state, observation, feedback) {
     const routeCandidates = searchRoutes(state.activeSubgoal || state.goal, observation.routes || [], { limit: 12, visited: state.routeHistory });
     const getForms = (observation.forms || []).filter(form => form.method === 'GET' && form.auto_submittable).slice(0, 8);
     state.lastRouteCandidates = routeCandidates;
+    const compactContent = compactModelContent(observation, routeCandidates); state.lastContextCounts = {
+      controls_before: observation.controls?.length || 0, controls_sent: observation.controls?.length || 0,
+      content_before: observation.content?.length || 0, content_sent: compactContent.length, route_candidates_sent: routeCandidates.length };
     const routeContext = routeCandidates.length || getForms.length ? `\n\nTOP OBSERVED ROUTE CANDIDATES:\n${JSON.stringify(routeCandidates)}\n\nSAFE GET FORMS:\n${JSON.stringify(getForms)}` : '';
     const routeGuidance = routeCandidates.length || getForms.length ? ' navigate_route accepts only a supplied r-ref and submit_form accepts only a supplied f-ref; never invent a URL or query string. Prefer a strong same-origin route candidate when it directly advances the goal. Submit only listed safe GET forms after configuring their controls.' : '';
     const refKind = routeCandidates.length || getForms.length ? 'ref' : 'e-ref';
-    return `You are the Navigator in a browser agent. Choose exactly one safe browser action toward the user's goal.\n\nUSER GOAL:\n${state.goal}\n${state.activeSubgoal ? `\nCURRENT SUBGOAL FROM REPLANNER:\n${state.activeSubgoal}\n` : ''}\nPAGE:\n${JSON.stringify(observation.page)}\n\nINTERACTIVE CONTROLS:\n${JSON.stringify(observation.controls)}${routeContext}\n\nRELEVANT SEMANTIC CONTENT BLOCKS:\n${JSON.stringify(observation.content)}\n\nRECENT ACTIONS AND PROGRESS:\n${JSON.stringify(state.tracker.recentActions)}\n\nACTIONS TO AVOID:\n${JSON.stringify(state.avoidActions)}\n\nChoose one action using only a supplied ${refKind}. The control capabilities.actions field is authoritative. Never invent selectors, XPath, JavaScript, or refs.${routeGuidance} Read eligibility, requirements, fees, warnings, validation, and status content before acting. Use scroll/focus only when it materially reveals or prepares a supplied control. Return impossible only when visible page evidence establishes that no suitable route exists and plausible routes on the page have been considered; cite supplied refs. Never execute final purchase, payment, submission, confirmation, deletion, booking approval, authentication, or personal-data sending. Those steps require a human.${feedback ? `\n\nVALIDATION FEEDBACK:\n${feedback}` : ''}`;
+    return `You are the Navigator in a browser agent. Choose exactly one safe browser action toward the user's goal.\n\nUSER GOAL:\n${state.goal}\n${state.activeSubgoal ? `\nCURRENT SUBGOAL FROM REPLANNER:\n${state.activeSubgoal}\n` : ''}\nPAGE:\n${JSON.stringify(observation.page)}\n\nINTERACTIVE CONTROLS:\n${JSON.stringify(observation.controls)}${routeContext}\n\nRELEVANT SEMANTIC CONTENT BLOCKS:\n${JSON.stringify(compactContent)}\n\nRECENT ACTIONS AND PROGRESS:\n${JSON.stringify(state.tracker.recentActions)}\n\nACTIONS TO AVOID:\n${JSON.stringify(state.avoidActions)}\n\nChoose one action using only a supplied ${refKind}. The control capabilities.actions field is authoritative. Never invent selectors, XPath, JavaScript, or refs.${routeGuidance} Read eligibility, requirements, fees, warnings, validation, and status content before acting. Use scroll/focus only when it materially reveals or prepares a supplied control. Return impossible only when visible page evidence establishes that no suitable route exists and plausible routes on the page have been considered; cite supplied refs. Never execute final purchase, payment, submission, confirmation, deletion, booking approval, authentication, or personal-data sending. Those steps require a human.${feedback ? `\n\nVALIDATION FEEDBACK:\n${feedback}` : ''}`;
   }
   async replan(state, observation, reason) {
     const routes = searchRoutes(state.goal, observation.routes || [], { limit: 10, visited: state.routeHistory });
@@ -100,9 +112,21 @@ class ExtensionV2Adapter {
     if (response.value.status === 'continue') { state.activeSubgoal = response.value.next_subgoal; state.avoidActions = [...new Set([...state.avoidActions, ...response.value.avoid_actions])].slice(-8); }
     return response;
   }
-  async step({ sessionId, goal, tabId, observation, previousExecution, maxSteps }) {
+  async step(input) {
+    let state = this.sessions.get(input.sessionId) || this.createSession(input);
+    const generation = Number(input.generation || 1);
+    if (state.stopped || TERMINAL.has(state.status)) return { status: state.status || 'stopped', step: state.step, message: 'This session is terminal.' };
+    if (generation < state.generation) return { status: 'discarded', code: 'LATE_RESPONSE', late_response_discarded: true, step: state.step };
+    if (state.inFlightRequestId) return { status: 'busy', code: 'SINGLE_FLIGHT', step: state.step };
+    state.generation = generation;
+    const snapshot = createRequestSnapshot({ sessionId: input.sessionId, generation, observation: input.observation });
+    state.inFlightRequestId = snapshot.requestId;
+    try { return await this._step({ ...input, generation, snapshot }); }
+    finally { if (state.inFlightRequestId === snapshot.requestId) state.inFlightRequestId = null; }
+  }
+  async _step({ sessionId, goal, tabId, observation, previousExecution, maxSteps, generation, snapshot }) {
     let state = this.sessions.get(sessionId) || this.createSession({ sessionId, goal, tabId, maxSteps });
-    if (state.stopped) return { status: 'stopped', step: state.step, message: 'This session is stopped.' };
+    if (state.stopped || state.generation !== generation) return { status: 'discarded', code: 'LATE_RESPONSE', late_response_discarded: true, step: state.step };
     if (!state.lastObservation) state.tracker.seed(observation.progress_signature);
     else if (previousExecution && state.lastActionIdentity) {
       const priorStep = state.trajectory.steps.at(-1);
@@ -133,8 +157,11 @@ class ExtensionV2Adapter {
     let response, feedback = null, control = null;
     for (let attempt = 0; attempt < 2; attempt++) {
       response = await this.generate(state, 'navigator', this.navigatorPrompt(state, observation, feedback), actionSchema);
-      try { control = validateAction(response.value, observation.controls, observation.routes, observation.forms); break; }
-      catch (error) { feedback = error.message; if (attempt === 1) throw error; }
+      if (state.stopped || state.generation !== generation) return { status: 'discarded', code: 'LATE_RESPONSE', late_response_discarded: true, request_id: snapshot.requestId, step: state.step };
+      const validation = validateAction(response.value, snapshot.controls, snapshot.routes, snapshot.forms);
+      if (!(validation && validation.ok === false)) { control = validation; break; }
+      feedback = `${validation.code}: choose only a ref supplied in observation ${snapshot.observationId}`;
+      if (attempt === 1) return { status: 'invalid_action', ...validation, request_id: snapshot.requestId, observation_id: snapshot.observationId, generation, step: state.step };
     }
     state.step++;
     const action = response.value;
@@ -142,7 +169,7 @@ class ExtensionV2Adapter {
       const replanned = await this.replan(state, observation, `Navigator proposed goal_impossible: ${action.reason}`);
       const status = replanned.value.status === 'goal_impossible' ? 'impossible' : replanned.value.status === 'needs_human' ? 'needs_human' : 'continue';
       state.trajectory.steps.push({ step: state.step, observation_summary: observation.summary, model_role: 'navigator', model_action: action, replan: replanned.value, final_status: status });
-      return status === 'continue' ? this.step({ sessionId, goal, tabId, observation, previousExecution: null, maxSteps }) :
+      return status === 'continue' ? this._step({ sessionId, goal, tabId, observation, previousExecution: null, maxSteps, generation, snapshot }) :
         { status, step: state.step, model_role: 'replanner', replans: state.replans, latency_ms: response.latency_ms + replanned.latency_ms, message: replanned.value.diagnosis };
     }
     const routeOrFormPause = action.action === 'navigate_route' && !control.same_origin || action.action === 'submit_form' && (control.method !== 'GET' || !control.auto_submittable);
@@ -158,7 +185,10 @@ class ExtensionV2Adapter {
       unique_route_count: observation.routes?.length || 0, route_candidates_sent: state.lastRouteCandidates || [], model_role: 'navigator', model_action: action,
       target: { ref: action.ref, name: control?.name || control?.text || control?.purpose || null }, latency_ms: response.latency_ms });
     return { status: 'action', step: state.step, action, target_name: control?.name || null, model_role: 'navigator', replans: state.replans,
-      latency_ms: response.latency_ms, route_candidates: state.lastRouteCandidates || [], message: userMessage(action, control) };
+      latency_ms: response.latency_ms, route_candidates: state.lastRouteCandidates || [], request_id: snapshot.requestId,
+      observation_id: snapshot.observationId, generation, usage: response.usage,
+      context: { ...state.lastContextCounts, request_chars: response.request_chars },
+      timings: { navigator_gemini_ms: response.latency_ms, replanner_gemini_ms: 0 }, message: userMessage(action, control) };
   }
 }
 function userMessage(action, control) {
@@ -168,4 +198,4 @@ function userMessage(action, control) {
     navigate_route: `Opening ${clean(control?.text || name)}.`, submit_form: `Applying ${clean(control?.purpose || name)}.` })[action.action] || 'Working on the next step.';
 }
 
-module.exports = { ExtensionV2Adapter, VERSION, PROMPT_VERSION, validateAction, consequential, sensitive, actionIdentity };
+module.exports = { ExtensionV2Adapter, VERSION, PROMPT_VERSION, validateAction, consequential, sensitive, actionIdentity, compactModelContent };

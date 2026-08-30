@@ -59,11 +59,14 @@ async function stopSession(session, reason = 'Stopped') {
   session.stopped = true; session.paused = false; session.status = C.STATUS.STOPPED;
   session.generation++; session.abortController?.abort(); session.abortController = null;
   message(session, reason); announce(session);
-  await server('/api/session/stop', { sessionId: session.sessionId }).catch(() => {});
+  await server('/api/session/stop', { sessionId: session.sessionId, generation: session.generation }).catch(() => {});
 }
 
+const terminal = session => session.stopped || [C.STATUS.COMPLETED, C.STATUS.IMPOSSIBLE, C.STATUS.STOPPED].includes(session.status);
+const activeGeneration = (session, generation) => !terminal(session) && !session.paused && session.generation === generation;
+
 async function runLoop(session) {
-  if (locks.has(session.tabId) || session.stopped || session.paused) return;
+  if (locks.has(session.tabId) || terminal(session) || session.paused) return;
   locks.add(session.tabId);
   const generation = session.generation;
   session.abortController = new AbortController();
@@ -72,18 +75,37 @@ async function runLoop(session) {
       session.status = C.STATUS.RUNNING;
       message(session, session.step ? 'Checking what changed…' : 'Understanding this page…'); announce(session);
       const observationResponse = await sendTab(session.tabId, { type: M.OBSERVE });
+      if (!activeGeneration(session, generation)) break;
       if (!observationResponse?.ok) throw new Error(observationResponse?.error || 'Could not observe this page');
       const observation = observationResponse.observation;
+      if (session.awaitingObservation && session.lastExecution) {
+        session.lastExecution.new_progress_signature = observation.progress_signature;
+        session.lastExecution.semantic_progress = observation.progress_signature !== session.lastExecution.previous_progress_signature;
+        session.awaitingObservation = false;
+      }
       session.debug.currentUrl = observation.page.url;
+      session.debug.observationMs = observation.timings?.observation_ms || 0;
+      session.debug.routeScoutMs = observation.timings?.route_scout_ms || 0;
+      message(session, 'Finding the best pathâ€¦'); announce(session);
 
-      const decision = await server('/api/session/step', {
+      const requestBody = {
         sessionId: session.sessionId, tabId: session.tabId, goal: session.goal, observation,
-        previousExecution: session.lastExecution || null, maxSteps: C.MAX_STEPS
-      }, session.abortController.signal);
-      if (session.stopped || session.generation !== generation) break;
+        previousExecution: session.lastExecution || null, maxSteps: C.MAX_STEPS, generation
+      }; const serializationStarted = performance.now(); JSON.stringify(requestBody);
+      session.debug.requestSerializationMs = Math.round((performance.now() - serializationStarted) * 10) / 10;
+      const transportStarted = performance.now();
+      const decision = await server('/api/session/step', requestBody, session.abortController.signal);
+      session.debug.serverTransportMs = Math.round((performance.now() - transportStarted) * 10) / 10;
+      if (!activeGeneration(session, generation)) { session.debug.lateResponseDiscarded = true; break; }
+      if (decision.status === 'discarded' || decision.status === 'busy') break;
+      if (decision.status === 'invalid_action') { message(session, 'The page changed before that action could be used. I’m checking it again.'); session.lastExecution = { action_success: false, execution_error: decision.code, semantic_progress: false }; announce(session); continue; }
       session.step = decision.step ?? session.step;
       session.debug.role = decision.model_role || 'navigator';
       session.debug.latencyMs = decision.latency_ms || 0;
+      session.debug.focusPlannerMs = decision.timings?.focus_planner_gemini_ms || 0;
+      session.debug.navigatorGeminiMs = decision.timings?.navigator_gemini_ms || decision.latency_ms || 0;
+      session.debug.focusCacheHit = Boolean(decision.focus_cache_hit);
+      session.debug.context = decision.context || null; session.debug.usage = decision.usage || null;
       session.debug.replans = decision.replans || session.debug.replans;
 
       const plan = decision.focus_plan;
@@ -94,7 +116,7 @@ async function runLoop(session) {
         session.status = decision.status === 'impossible' ? C.STATUS.IMPOSSIBLE : decision.status === 'completed' ? C.STATUS.COMPLETED : C.STATUS.STOPPED;
         session.stopped = true;
         message(session, decision.message || (decision.status === 'impossible' ? "I couldn't find a safe path matching that goal." : 'GuideMode has stopped.'));
-        announce(session); break;
+        session.generation++; session.abortController?.abort(); announce(session); break;
       }
       if (decision.status === 'needs_human' || decision.pause) {
         session.paused = true; session.status = C.STATUS.PAUSED; session.currentAction = decision.action || null;
@@ -107,13 +129,28 @@ async function runLoop(session) {
       session.debug.targetName = decision.target_name || decision.action.reason || decision.action.ref;
       message(session, decision.message || decision.action.reason || 'Working on the next step…'); announce(session);
 
-      const executed = await sendTab(session.tabId, { type: M.EXECUTE, action: { ...decision.action, observation_id: observation.observation_id } });
+      const executed = await sendTab(session.tabId, { type: M.EXECUTE, action: { ...decision.action, observation_id: decision.observation_id } });
+      if (!activeGeneration(session, generation)) break;
       if (!executed?.ok) throw new Error(executed?.error || 'Page action failed');
       if (executed.result?.paused) {
         session.paused = true; session.status = C.STATUS.PAUSED; session.lastExecution = executed.result;
         message(session, "You're at a step that needs your review. Please complete it yourself, then press Continue."); announce(session); break;
       }
+      if (['stale_route_ref','stale_form_ref'].includes(executed.result?.execution_failure_type) || /stale/i.test(executed.result?.execution_error || '')) {
+        session.lastExecution = { ...executed.result, code: 'STALE_REF', previous_progress_signature: observation.progress_signature,
+          new_progress_signature: observation.progress_signature, semantic_progress: false };
+        session.debug.staleRefRecovered = true; message(session, 'The page changed. I’m refreshing what I can act on.'); announce(session); continue;
+      }
+      if (executed.result?.navigation_started) {
+        session.status = 'navigating'; session.awaitingObservation = true;
+        session.lastExecution = { ...executed.result, previous_progress_signature: observation.progress_signature,
+          new_progress_signature: observation.progress_signature, semantic_progress: false };
+        session.debug.executorMs = executed.result.executor_ms || 0; session.debug.settleWaitMs = executed.result.settle_wait_ms || 0;
+        announce(session); break;
+      }
+      const reobserveStarted = performance.now();
       const fresh = await sendTab(session.tabId, { type: M.OBSERVE });
+      session.debug.reobserveMs = Math.round((performance.now() - reobserveStarted) * 10) / 10;
       const progress = fresh?.observation?.progress_signature !== observation.progress_signature;
       const previousUrl = new URL(observation.page.url); const nextUrl = new URL(fresh?.observation?.page?.url || observation.page.url);
       session.semanticProgress = progress;
@@ -124,6 +161,7 @@ async function runLoop(session) {
         route_candidate_selected: decision.action.action === 'navigate_route' ? decision.action.ref : null };
       session.debug.actionSuccess = Boolean(executed.result?.action_success);
       session.debug.semanticProgress = progress;
+      session.debug.executorMs = executed.result?.executor_ms || 0; session.debug.settleWaitMs = executed.result?.settle_wait_ms || 0;
       session.currentAction = null;
       announce(session);
     }

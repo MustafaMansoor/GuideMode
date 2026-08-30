@@ -3,13 +3,14 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { ExtensionV2Adapter } = require('./v2-adapter');
-const { planFocus } = require('./focus-adapter');
+const { planFocus, plannerObservation, focusContextKey, reconcileFocusPlan } = require('./focus-adapter');
 
 const PORT = Number(process.env.GUIDEMODE_SERVER_PORT || 4317);
 const HOST = '127.0.0.1';
 const trajectoriesDir = path.join(__dirname, 'trajectories');
 fs.mkdirSync(trajectoriesDir, { recursive: true });
 let adapter;
+const focusCache = new Map();
 
 function json(response, status, value, origin = 'null') {
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': origin,
@@ -37,17 +38,25 @@ const server = http.createServer(async (request, response) => {
     if (request.method === 'GET' && request.url === '/api/health') return json(response, 200, { ok: true, service: 'guidemode-extension-server', model: adapter.model }, allowedOrigin);
     if (request.method === 'POST' && request.url === '/api/session/step') {
       const body = await readBody(request);
+      const transportStarted = Date.now();
       const result = await adapter.step(body);
       const state = adapter.sessions.get(body.sessionId);
-      if (body.observation && result.status !== 'error') {
-        try { await adapter.pace(); result.focus_plan = await planFocus({ ai: adapter.ai, model: adapter.model, goal: body.goal, observation: body.observation }); }
+      result.timings ||= {}; result.timings.server_processing_ms = Date.now() - transportStarted;
+      if (body.observation && ['action','needs_human'].includes(result.status)) {
+        try {
+          const key = focusContextKey(body.goal, body.observation); const cached = focusCache.get(body.sessionId);
+          if (cached?.key === key) { result.focus_plan = reconcileFocusPlan(cached.plan, cached.elements, body.observation); result.timings.focus_planner_gemini_ms = 0; result.focus_cache_hit = true; }
+          else { await adapter.pace(); const focusStarted = Date.now(); result.focus_plan = await planFocus({ ai: adapter.ai, model: adapter.model, goal: body.goal, observation: body.observation });
+            result.timings.focus_planner_gemini_ms = Date.now() - focusStarted; focusCache.set(body.sessionId, { key, plan: result.focus_plan, elements: plannerObservation(body.observation) }); }
+        }
         catch (error) { result.focus_plan_error = error.message; }
       }
+      if (['impossible','completed'].includes(result.status)) adapter.markTerminal(body.sessionId, result.status, body.generation);
       if (['impossible','completed','step_limit','needs_human'].includes(result.status)) saveTrajectory(state);
       return json(response, 200, result, allowedOrigin);
     }
     if (request.method === 'POST' && request.url === '/api/session/stop') {
-      const body = await readBody(request); const state = adapter.stop(body.sessionId); const file = saveTrajectory(state);
+      const body = await readBody(request); const state = adapter.stop(body.sessionId, body.generation); focusCache.delete(body.sessionId); const file = saveTrajectory(state);
       return json(response, 200, { ok: true, trajectory: file ? path.relative(process.cwd(), file) : null }, allowedOrigin);
     }
     return json(response, 404, { error: 'Not found' }, allowedOrigin);

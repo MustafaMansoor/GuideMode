@@ -18,7 +18,7 @@ const { searchRoutes } = require('../../guidemode-extension-server/route-scout')
     try {
       const start = 'https://www.gov.uk/renew-driving-licence', goal = 'Help me find how to replace a lost driving licence.', sessionId = crypto.randomUUID();
       await gov.goto(start, { waitUntil: 'domcontentloaded', timeout: 45000 }); await gov.waitForTimeout(1200);
-      let currentTabId = await tabIdFor(sw, 'gov.uk'), previousExecution = null, initial = null, ranked = [], chosen = [], reached = false;
+      let currentTabId = await tabIdFor(sw, 'gov.uk'), previousExecution = null, initial = null, ranked = [], chosen = [], reached = false, staleRecovery = null;
       for (let step = 1; step <= 6 && !reached; step++) {
         currentTabId = await tabIdFor(sw, 'gov.uk');
         const observed = await message(sw, currentTabId, { type: 'GM_OBSERVE' }); initial ||= observed.observation;
@@ -28,6 +28,12 @@ const { searchRoutes } = require('../../guidemode-extension-server/route-scout')
         chosen.push({ step, status: decision.status, action: decision.action || null, top_routes: ranked });
         if (decision.status !== 'action') break;
         const before = observed.observation.progress_signature;
+        if (!staleRecovery && decision.action.action === 'navigate_route') {
+          const newer = await message(sw, currentTabId, { type: 'GM_OBSERVE' });
+          const stale = await message(sw, currentTabId, { type: 'GM_EXECUTE', action: { ...decision.action, observation_id: decision.observation_id } });
+          staleRecovery = stale.result; previousExecution = { ...stale.result, previous_progress_signature: before,
+            new_progress_signature: newer.observation.progress_signature, semantic_progress: false }; continue;
+        }
         const executed = await message(sw, currentTabId, { type: 'GM_EXECUTE', action: { ...decision.action, observation_id: observed.observation.observation_id } });
         if (executed.result?.paused) { chosen.at(-1).paused = true; break; }
         if (executed.result?.navigation_started) { await gov.waitForLoadState('domcontentloaded').catch(() => {}); await gov.waitForTimeout(900); }
@@ -40,7 +46,7 @@ const { searchRoutes } = require('../../guidemode-extension-server/route-scout')
       report.tests.push({ site: 'GOV.UK', goal, status: reached ? 'pass' : 'limited', start_url: start, final_url: gov.url(),
         raw_links: initial?.route_summary.raw_link_count || 0, unique_same_origin_routes: initial?.route_summary.same_origin_count || 0,
         routes_sent_to_navigator: chosen[0]?.top_routes.length || 0, top_ranked_candidates: chosen[0]?.top_routes || [], chosen_steps: chosen,
-        steps: chosen.length, prohibited_actions_executed: 0, note: 'Observed refs only; no sign-in or transactional service.' });
+        steps: chosen.length, stale_ref_recovery: staleRecovery, prohibited_actions_executed: 0, note: 'Observed refs only; no sign-in or transactional service.' });
     } catch (error) { report.tests.push({ site: 'GOV.UK', status: 'site_incompatible', error: error.message }); }
     finally { await gov.close(); }
 
@@ -48,6 +54,10 @@ const { searchRoutes } = require('../../guidemode-extension-server/route-scout')
     try {
       await shop.goto('https://edenrobe.com/', { waitUntil: 'domcontentloaded', timeout: 45000 }); await shop.waitForTimeout(1800);
       const tabId = await tabIdFor(sw, 'edenrobe.com'), observed = await message(sw, tabId, { type: 'GM_OBSERVE' });
+      const safeRoute = observed.observation.routes.find(route => route.same_origin && !/cart|checkout|account|login|logout|delete|pay/i.test(`${route.text} ${route.pathname}`));
+      const refreshed = await message(sw, tabId, { type: 'GM_OBSERVE' });
+      const staleRouteResult = safeRoute ? (await message(sw, tabId, { type: 'GM_EXECUTE', action: { action: 'navigate_route', ref: safeRoute.ref,
+        observation_id: observed.observation.observation_id } })).result : null;
       const useful = observed.observation.controls.filter(control => /men|shirt|search/i.test(`${control.name} ${control.group_context}`)).slice(0, 6);
       const other = observed.observation.controls.filter(control => !useful.some(item => item.ref === control.ref)).slice(0, 12);
       const plan = { elements: [...useful.map(item => ({ ref: item.ref, final_classification: 'relevant' })), ...other.map(item => ({ ref: item.ref, final_classification: 'deemphasize' }))], uncertain_refs: [] };
@@ -57,7 +67,7 @@ const { searchRoutes } = require('../../guidemode-extension-server/route-scout')
       report.tests.push({ site: 'Edenrobe', goal: "Help me find a blue men's shirt.", status: 'observed', final_url: shop.url(),
         raw_links: observed.observation.route_summary.raw_link_count, unique_routes: observed.observation.route_summary.unique_route_count,
         forms: observed.observation.forms.map(form => ({ method: form.method, purpose: form.purpose, auto_submittable: form.auto_submittable })),
-        get_filter_form_found: observed.observation.forms.some(form => form.method === 'GET' && form.auto_submittable),
+        get_filter_form_found: observed.observation.forms.some(form => form.method === 'GET' && form.auto_submittable), stale_route_recovery: staleRouteResult,
         restore_preserved_state: JSON.stringify(before) === JSON.stringify(after), prohibited_actions_executed: 0,
         note: 'No filter submission claimed unless native GET form semantics exist; no cart or checkout.' });
     } catch (error) { report.tests.push({ site: 'Edenrobe', status: 'site_incompatible', error: error.message }); }

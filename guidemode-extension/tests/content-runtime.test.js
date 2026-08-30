@@ -24,12 +24,12 @@ const { chromium } = require('playwright');
     assert(small && small.capabilities.actions.includes('check'));
     assert(search.capabilities.editable_combobox && search.capabilities.actions.includes('fill'));
     assert(select.capabilities.actions.includes('select') && !select.capabilities.actions.includes('fill'));
-    const checked = await page.evaluate(ref => globalThis.__GuideModeTest.execute({ action: 'check', ref }), small.ref);
+    const checked = await page.evaluate(({ref,observation_id}) => globalThis.__GuideModeTest.execute({ action: 'check', ref, observation_id }), {ref:small.ref,observation_id:observation.observation_id});
     assert.equal(checked.action_success, true); assert.equal(checked.executor_strategy, 'associated-label-activation');
-    const filled = await page.evaluate(ref => globalThis.__GuideModeTest.execute({ action: 'fill', ref, value: 'lost licence' }), search.ref);
+    const filled = await page.evaluate(({ref,observation_id}) => globalThis.__GuideModeTest.execute({ action: 'fill', ref, value: 'lost licence', observation_id }), {ref:search.ref,observation_id:observation.observation_id});
     assert.equal(filled.action_success, true);
     const submit = observation.controls.find(item => item.name === 'Submit application');
-    const paused = await page.evaluate(ref => globalThis.__GuideModeTest.execute({ action: 'click', ref }), submit.ref);
+    const paused = await page.evaluate(({ref,observation_id}) => globalThis.__GuideModeTest.execute({ action: 'click', ref, observation_id }), {ref:submit.ref,observation_id:observation.observation_id});
     assert.equal(paused.paused, true); assert.equal(paused.pause_reason, 'consequential');
     await page.evaluate(() => globalThis.__GuideModeTest.setVisualMode(true));
     await page.evaluate(plan => globalThis.__GuideModeTest.applyVisualPlan(plan), { elements: [
@@ -45,8 +45,8 @@ const { chromium } = require('playwright');
     await page.evaluate(()=>{const dialog=document.createElement('div');dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');dialog.innerHTML='<h2>Confirm choice</h2><button id="modalAction">Review details</button>';document.body.append(dialog)});
     const modalObservation=await page.evaluate(()=>globalThis.__GuideModeTest.observe());assert.equal(modalObservation.summary.modal_scoped,true);assert(modalObservation.controls.some(item=>item.name==='Review details'));assert(!modalObservation.controls.some(item=>item.name==='Continue'));
     await page.evaluate(()=>{document.querySelector('[role="dialog"]').remove();const button=document.createElement('button');button.id='covered';button.textContent='Covered action';button.style.cssText='position:fixed;left:20px;top:20px;width:140px;height:40px';document.body.append(button);const cover=document.createElement('div');cover.id='cover';cover.style.cssText='position:fixed;left:20px;top:20px;width:140px;height:40px;z-index:999;background:white';document.body.append(cover)});
-    const coveredObservation=await page.evaluate(()=>globalThis.__GuideModeTest.observe());const covered=coveredObservation.controls.find(item=>item.name==='Covered action');const obstruction=await page.evaluate(action=>globalThis.__GuideModeTest.execute(action),{action:'click',ref:covered.ref});assert.equal(obstruction.execution_failure_type,'obstructed');
-    await page.evaluate(()=>{document.querySelector('#cover').remove();const form=document.createElement('form');form.method='get';form.action='#searched';form.innerHTML='<button type="submit">Run search</button>';document.body.append(form)});const submitterObservation=await page.evaluate(()=>globalThis.__GuideModeTest.observe());const submitter=submitterObservation.controls.find(item=>item.name==='Run search');const submitterResult=await page.evaluate(action=>globalThis.__GuideModeTest.execute(action),{action:'click',ref:submitter.ref});assert.equal(submitterResult.executor_strategy,'native-get-form-submitter');
+    const coveredObservation=await page.evaluate(()=>globalThis.__GuideModeTest.observe());const covered=coveredObservation.controls.find(item=>item.name==='Covered action');const obstruction=await page.evaluate(action=>globalThis.__GuideModeTest.execute(action),{action:'click',ref:covered.ref,observation_id:coveredObservation.observation_id});assert.equal(obstruction.execution_failure_type,'obstructed');
+    await page.evaluate(()=>{document.querySelector('#cover').remove();const form=document.createElement('form');form.method='get';form.action='#searched';form.innerHTML='<button type="submit">Run search</button>';document.body.append(form)});const submitterObservation=await page.evaluate(()=>globalThis.__GuideModeTest.observe());const submitter=submitterObservation.controls.find(item=>item.name==='Run search');const submitterResult=await page.evaluate(action=>globalThis.__GuideModeTest.execute(action),{action:'click',ref:submitter.ref,observation_id:submitterObservation.observation_id});assert.equal(submitterResult.executor_strategy,'native-get-form-submitter');
     console.log('GuideMode content observer/executor/visual checks PASS');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

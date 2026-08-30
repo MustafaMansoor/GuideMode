@@ -6,7 +6,7 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 const { chromium } = require('playwright');
 const { ExtensionV2Adapter } = require('../../guidemode-extension-server/v2-adapter');
-const { planFocus } = require('../../guidemode-extension-server/focus-adapter');
+const { planFocus, plannerObservation, focusContextKey, reconcileFocusPlan } = require('../../guidemode-extension-server/focus-adapter');
 
 if (!process.env.GEMINI_API_KEY) throw new Error('Missing GEMINI_API_KEY');
 const extensionScript = path.join(__dirname, '..', 'content.js');
@@ -21,17 +21,21 @@ const execute = (page, action) => page.evaluate(value => globalThis.__GuideModeT
     source_agent_commit: 'ac958d97a549780876f5256a8f9e50e691187ee1', started_at: new Date().toISOString(), tests: [] };
   async function run({ id, goal, url, maxSteps, terminal }) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } }); const sessionId = crypto.randomUUID();
-    const result = { id, goal, start_url: url, steps: [], status: 'step_limit' };
+    const result = { id, goal, start_url: url, steps: [], status: 'step_limit', focus_planner_calls: 0, focus_cache_hits: 0 };
+    let focusCache = null;
     try {
       await page.goto(url); await install(page); let previousExecution = null;
       for (let i = 0; i < maxSteps; i++) {
         const observation = await observe(page);
         const terminalState = await terminal(page, observation); if (terminalState) { result.status = terminalState; break; }
-        const decision = await adapter.step({ sessionId, tabId: id, goal, observation, previousExecution, maxSteps });
-        await adapter.pace(); const plan = await planFocus({ ai: adapter.ai, model: adapter.model, goal, observation });
+        const decision = await adapter.step({ sessionId, tabId: id, goal, observation, previousExecution, maxSteps, generation: 1 });
+        const focusKey = focusContextKey(goal, observation); let plan;
+        if (focusCache?.key === focusKey) { plan = reconcileFocusPlan(focusCache.plan, focusCache.elements, observation); result.focus_cache_hits++; }
+        else { await adapter.pace(); plan = await planFocus({ ai: adapter.ai, model: adapter.model, goal, observation }); result.focus_planner_calls++;
+          focusCache = { key: focusKey, plan, elements: plannerObservation(observation) }; }
         await page.evaluate(value => { globalThis.__GuideModeTest.setVisualMode(true); globalThis.__GuideModeTest.applyVisualPlan(value); }, { ...plan, current_ref: decision.action?.ref || null });
         const step = { step: decision.step, role: decision.model_role, action: decision.action || null, status: decision.status,
-          focus_elements: plan.elements.length, latency_ms: decision.latency_ms + plan.latency_ms };
+          focus_elements: plan.elements.length, latency_ms: decision.latency_ms + (plan.cache_hit ? 0 : plan.latency_ms), observation_ms: observation.timings?.observation_ms || 0 };
         if (decision.status !== 'action') { result.status = decision.status; result.steps.push(step); break; }
         const before = observation.progress_signature; const execution = await execute(page, { ...decision.action, observation_id: observation.observation_id }); const after = await observe(page);
         previousExecution = { ...execution, previous_progress_signature: before, new_progress_signature: after.progress_signature,

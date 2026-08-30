@@ -12,6 +12,7 @@
   let routeMap = new Map();
   let formMap = new Map();
   let currentObservationId = null;
+  let observationGeneration = 0;
   let currentPlan = null;
   let visualEnabled = false;
   let styleElement = null;
@@ -86,11 +87,13 @@
   }
 
   function observe() {
+    const observationStarted = performance.now();
     clearVisualAttributes();
     refMap = new Map();
     routeMap = new Map();
     formMap = new Map();
     currentObservationId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+    observationGeneration++;
     const interactionRoot = activeInteractionRoot();
     const modalScoped = interactionRoot !== document;
     const roles = new Set(['button','link','checkbox','radio','slider','textbox','searchbox','spinbutton','combobox','listbox']);
@@ -116,6 +119,7 @@
       };
     });
 
+    const routeStarted = performance.now();
     const rawRouteNodes = [...interactionRoot.querySelectorAll('a[href],[role="link"][href]')];
     const deduplicatedRoutes = new Map();
     for (const element of rawRouteNodes) {
@@ -130,6 +134,7 @@
     const routes = [...deduplicatedRoutes.values()].slice(0, 160).map((route, index) => {
       const ref = `r${index + 1}`; routeMap.set(ref, route); return { ref, ...route };
     });
+    const routeScoutMs = performance.now() - routeStarted;
 
     const forms = [];
     for (const form of [...interactionRoot.querySelectorAll('form')].filter(isRendered).slice(0, 30)) {
@@ -170,9 +175,10 @@
       status: content.filter(c => ['heading','alert','status','validation','note','fee_or_price'].includes(c.type)).map(c => `${c.type}:${c.text}`)
     };
     const progress_signature = hash(JSON.stringify(signaturePayload));
-    return { observation_id: currentObservationId, page, controls, content, routes, forms,
+    return { observationId: currentObservationId, observation_id: currentObservationId, generation: observationGeneration, page, controls, content, routes, forms,
       route_summary: { raw_link_count: rawRouteNodes.length, unique_route_count: routes.length, same_origin_count: routes.filter(route => route.same_origin).length },
-      summary: { heading: page.heading, control_count: controls.length, content_count: content.length, route_count: routes.length, form_count: forms.length, modal_scoped: modalScoped }, progress_signature };
+      summary: { heading: page.heading, control_count: controls.length, content_count: content.length, route_count: routes.length, form_count: forms.length, modal_scoped: modalScoped }, progress_signature,
+      timings: { observation_ms: Math.round((performance.now() - observationStarted) * 10) / 10, route_scout_ms: Math.round(routeScoutMs * 10) / 10 } };
   }
 
   function hash(value) {
@@ -246,11 +252,14 @@
     element.dispatchEvent(new Event('change', { bubbles: true }));
   }
   async function execute(action) {
+    const executorStarted = performance.now();
     if (!action || !ACTIONS.has(action.action)) return { action_success: false, execution_error: 'Unsupported bounded action' };
+    if (!action.observation_id || action.observation_id !== currentObservationId) return { ok: false, action_success: false, code: 'STALE_REF', ref: action.ref,
+      action: action.action, observationId: action.observation_id || null, latestObservationId: currentObservationId, recoverable: true,
+      execution_failure_type: 'stale_ref', execution_error: 'Ref is from an expired observation' };
     if (action.action === 'navigate_route') {
-      if (!action.observation_id || action.observation_id !== currentObservationId) return { action_success: false, execution_failure_type: 'stale_route_ref', execution_error: 'Route ref is from an expired observation' };
       const route = routeMap.get(action.ref);
-      if (!route) return { action_success: false, execution_failure_type: 'stale_route_ref', execution_error: 'Route ref is stale or unknown; re-observation required' };
+      if (!route) return { ok: false, action_success: false, code: 'INVALID_REF', ref: action.ref, action: action.action, observationId: currentObservationId, recoverable: false, execution_failure_type: 'invalid_ref', execution_error: 'Unknown route ref' };
       if (!route.same_origin) return { action_success: false, paused: true, pause_reason: 'external_route', target_name: route.text };
       if (routeIsConsequential(route)) return { action_success: false, paused: true, pause_reason: 'consequential_route', target_name: route.text };
       const previous_url = location.href; setTimeout(() => location.assign(route.href), 0);
@@ -258,9 +267,8 @@
         previous_url, requested_url: route.href, target_name: route.text };
     }
     if (action.action === 'submit_form') {
-      if (!action.observation_id || action.observation_id !== currentObservationId) return { action_success: false, execution_failure_type: 'stale_form_ref', execution_error: 'Form ref is from an expired observation' };
       const form = formMap.get(action.ref);
-      if (!form?.isConnected) return { action_success: false, execution_failure_type: 'stale_form_ref', execution_error: 'Form ref is stale or unknown; re-observation required' };
+      if (!form?.isConnected) return { ok: false, action_success: false, code: 'STALE_REF', ref: action.ref, action: action.action, observationId: currentObservationId, latestObservationId: currentObservationId, recoverable: true, execution_failure_type: 'stale_ref', execution_error: 'Observed form detached before execution' };
       const method = clean(form.method || 'get').toUpperCase();
       if (method !== 'GET') return { action_success: false, paused: true, pause_reason: 'non_get_form', target_name: accessibleName(form) || groupContext(form) };
       const target = normalizeRoute(form.getAttribute('action') || location.href);
@@ -270,7 +278,8 @@
         previous_url, requested_url: target.href, target_name: accessibleName(form) || groupContext(form) };
     }
     const node = refMap.get(action.ref);
-    if (!node?.isConnected) return { action_success: false, execution_error: 'Ref is stale or unknown; re-observation required' };
+    if (!node) return { ok: false, action_success: false, code: 'INVALID_REF', ref: action.ref, action: action.action, observationId: currentObservationId, recoverable: false, execution_failure_type: 'invalid_ref', execution_error: 'Unknown control ref' };
+    if (!node.isConnected) return { ok: false, action_success: false, code: 'STALE_REF', ref: action.ref, action: action.action, observationId: currentObservationId, latestObservationId: currentObservationId, recoverable: true, execution_failure_type: 'stale_ref', execution_error: 'Observed control detached before execution' };
     const role = node.getAttribute('role') || implicitRole(node);
     const control = { name: accessibleName(node), group_context: groupContext(node), type: node.type || null, role };
     if (node.disabled || node.getAttribute('aria-disabled') === 'true') return { action_success: false, execution_error: 'Control is disabled' };
@@ -321,14 +330,21 @@
         node.scrollIntoView({ block: 'center', inline: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
       } else if (action.action === 'focus') node.focus({ preventScroll: false });
     } catch (error) { return { action_success: false, execution_error: error.message, executor_strategy: strategy, target_name: control.name }; }
-    await new Promise(resolve => setTimeout(resolve, 140));
+    const settleStarted = performance.now();
+    const fastStateAction = ['fill','check','uncheck','select','focus'].includes(action.action);
+    if (!fastStateAction) await new Promise(resolve => {
+      let done = false; const finish = () => { if (done) return; done = true; observer.disconnect(); clearTimeout(timer); resolve(); };
+      const observer = new MutationObserver(finish); observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true });
+      const timer = setTimeout(finish, 100);
+    });
     const stillConnected = node.isConnected;
     let success = true;
     if (action.action === 'check') success = !stillConnected || node.checked === true;
     if (action.action === 'uncheck') success = !stillConnected || node.checked === false;
     if (action.action === 'fill') success = !stillConnected || ('value' in node ? String(node.value) === String(action.value ?? '') : node.textContent === String(action.value ?? ''));
     if (action.action === 'select') success = !stillConnected || node.value === action.value;
-    return { action_success: success, executor_strategy: stillConnected ? strategy : 'rerender-tolerated', dom_detached_during_action: !stillConnected, target_name: control.name };
+    return { action_success: success, executor_strategy: stillConnected ? strategy : 'rerender-tolerated', dom_detached_during_action: !stillConnected, target_name: control.name,
+      executor_ms: Math.round((performance.now() - executorStarted) * 10) / 10, settle_wait_ms: Math.round((performance.now() - settleStarted) * 10) / 10 };
   }
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

@@ -22,12 +22,12 @@ async function act(page, action) { return page.evaluate(value => globalThis.__Gu
       const observation = await observe(threadly);
       const control = observation.controls.find(item => item.group_context === requirement.group && item.value === requirement.value);
       assert(control, `Missing ${requirement.group}=${requirement.value}`);
-      const result = await act(threadly, { action: 'check', ref: control.ref });
+      const result = await act(threadly, { action: 'check', ref: control.ref, observation_id: observation.observation_id });
       assert.equal(result.action_success, true); assert(['native-dom', 'associated-label-activation'].includes(result.executor_strategy));
     }
     let observation = await observe(threadly);
     const slider = observation.controls.find(item => item.role === 'slider'); assert(slider);
-    assert.equal((await act(threadly, { action: 'fill', ref: slider.ref, value: '70' })).action_success, true);
+    assert.equal((await act(threadly, { action: 'fill', ref: slider.ref, value: '70', observation_id: observation.observation_id })).action_success, true);
     observation = await observe(threadly);
     const relevant = observation.controls.filter(item => item.checked || item.role === 'slider').map(item => ({ ref: item.ref, final_classification: 'relevant' }));
     const unrelated = observation.controls.find(item => item.name === 'Open shopping bag');
@@ -49,13 +49,13 @@ async function act(page, action) { return page.evaluate(value => globalThis.__Gu
     assert(replacement, `Replacement route missing: ${JSON.stringify(observation.routes.slice(0,12))}`); assert.equal((await act(civic, { action: 'navigate_route', ref: replacement.ref, observation_id: observation.observation_id })).action_success, true);
     await civic.waitForTimeout(100); observation = await observe(civic);
     const start = observation.controls.find(item => item.name === 'Start replacement request'); assert(start);
-    assert.equal((await act(civic, { action: 'click', ref: start.ref })).action_success, true);
+    assert.equal((await act(civic, { action: 'click', ref: start.ref, observation_id: observation.observation_id })).action_success, true);
     await civic.waitForTimeout(100); observation = await observe(civic);
     const lost = observation.controls.find(item => item.role === 'radio' && item.value === 'Lost'); assert(lost);
-    const radioResult = await act(civic, { action: 'check', ref: lost.ref }); assert.equal(radioResult.action_success, true);
+    const radioResult = await act(civic, { action: 'check', ref: lost.ref, observation_id: observation.observation_id }); assert.equal(radioResult.action_success, true);
     observation = await observe(civic);
     const licence = observation.controls.find(item => /driving licence number/i.test(item.name)); assert(licence);
-    const sensitivePause = await act(civic, { action: 'fill', ref: licence.ref, value: 'PRIVATE' });
+    const sensitivePause = await act(civic, { action: 'fill', ref: licence.ref, value: 'PRIVATE', observation_id: observation.observation_id });
     assert.equal(sensitivePause.paused, true); assert.equal(sensitivePause.pause_reason, 'sensitive');
     assert.equal(await civic.evaluate(() => window.civicPortalState?.consequentialActionExecuted), false);
     report.tests.push({ id: 'civic-lost-replacement', goal: 'Help me replace a lost driving licence.', status: 'pass',
