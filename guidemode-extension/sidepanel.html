@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GuideMode</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <main class="app">
+    <header class="header">
+      <div class="brand"><span class="mark" aria-hidden="true">✦</span><div><h1>GuideMode</h1><p>The web adapts to your goal.</p></div></div>
+      <span id="status" class="status" data-status="ready"><span aria-hidden="true"></span>Ready</span>
+    </header>
+
+    <section id="conversation" class="conversation" aria-live="polite" aria-label="GuideMode progress">
+      <article class="message assistant">Tell me what you want to do on this page. I’ll guide the page and pause before sensitive or consequential steps.</article>
+    </section>
+
+    <section class="composer" aria-label="Goal">
+      <label for="goal">Your goal</label>
+      <textarea id="goal" rows="3" placeholder="Tell GuideMode what you want to do…"></textarea>
+      <p class="examples">Try “Help me renew my licence” or “Find a blue shirt under $70”.</p>
+      <div class="actions">
+        <button id="start" class="primary">Start GuideMode</button>
+        <button id="stop" class="danger" hidden>Stop</button>
+        <button id="continue" class="primary" hidden>Continue</button>
+      </div>
+    </section>
+
+    <section class="visual-controls" aria-labelledby="visual-title">
+      <div><h2 id="visual-title">Page focus</h2><p>Reduce distractions without hiding or disabling the page.</p></div>
+      <label class="switch"><input id="visual-enabled" type="checkbox" checked><span aria-hidden="true"></span><span class="sr-only">Enable GuideMode visuals</span></label>
+      <button id="original" class="secondary" disabled>Show original page</button>
+    </section>
+
+    <section id="connection" class="connection" hidden>
+      <strong>GuideMode agent server is not connected.</strong>
+      <code>npm run extension:server</code>
+      <button id="retry" class="secondary">Retry connection</button>
+    </section>
+
+    <details class="debug">
+      <summary>Debug</summary>
+      <dl>
+        <dt>Session</dt><dd id="debug-session">—</dd>
+        <dt>Step</dt><dd id="debug-step">0</dd>
+        <dt>URL</dt><dd id="debug-url">—</dd>
+        <dt>Agent role</dt><dd id="debug-role">—</dd>
+        <dt>Last action</dt><dd id="debug-action">—</dd>
+        <dt>Target</dt><dd id="debug-target">—</dd>
+        <dt>Action success</dt><dd id="debug-success">—</dd>
+        <dt>Semantic progress</dt><dd id="debug-progress">—</dd>
+        <dt>Replans</dt><dd id="debug-replans">0</dd>
+        <dt>Latency</dt><dd id="debug-latency">—</dd>
+      </dl>
+    </details>
+  </main>
+  <script src="shared/constants.js"></script>
+  <script src="shared/messages.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

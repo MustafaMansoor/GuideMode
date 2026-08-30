@@ -18,7 +18,11 @@
     "agent:v2:test": "node agent-core-v2/runtime.test.js",
     "production:evaluate": "node production-eval/run.js",
     "agent:v2.1:test": "node agent-core-v2.1/runtime.test.js",
-    "agent:v2.1:evaluate": "node agent-v2.1-eval.js"
+    "agent:v2.1:evaluate": "node agent-v2.1-eval.js",
+    "extension:server": "node guidemode-extension-server/server.js",
+    "extension:test": "node guidemode-extension-server/runtime.test.js && node guidemode-extension/tests/content-runtime.test.js && node guidemode-extension/tests/synthetic-integration.test.js && node guidemode-extension/tests/manifest-load.test.js",
+    "extension:smoke": "node guidemode-extension/tests/real-site-smoke.js",
+    "extension:live": "node guidemode-extension/tests/live-agent-integration.js"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",

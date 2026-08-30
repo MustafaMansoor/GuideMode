@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "GuideMode",
+  "version": "0.1.0",
+  "description": "Goal-guided, safety-conscious assistance for the current webpage.",
+  "permissions": ["activeTab", "sidePanel", "storage", "tabs"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": { "service_worker": "background.js" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": { "default_title": "Open GuideMode" },
+  "content_scripts": [{
+    "matches": ["http://*/*", "https://*/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }]
+}

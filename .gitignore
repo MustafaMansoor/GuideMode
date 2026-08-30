@@ -3,3 +3,4 @@ node_modules/
 trajectories/*.json
 artifacts/guidemode-visual-*/
 artifacts/civic-evaluation-*/
+guidemode-extension-server/trajectories/*.json
