@@ -1,119 +1,110 @@
-# Threadly mini ecommerce store
+# GuideMode
 
-A dependency-free frontend fashion store demo with 40 synthetic products.
+GuideMode is a goal-conditioned browser assistant that turns an existing webpage into a temporary guided interface for what the user is trying to accomplish.
 
-## Run it
+It is intended for people with low digital confidence, older adults navigating unfamiliar digital workflows, and anyone facing a complex unfamiliar website. These are intended users; we have not conducted a formal older-adult user study.
 
-Open `index.html` directly in a modern browser. No installation or build step is required.
+- **Guide Me** identifies and visually explains the next verified step while the user remains in control.
+- **Do It For Me** performs bounded browser actions and pauses before sensitive or consequential steps.
 
-## Included
+The final benchmark runtime is frozen **Agent Core v2** (`ac958d97a549780876f5256a8f9e50e691187ee1`). The final product is the Manifest V3 extension using a v2-derived adapter. Agent Core v2.1 and v2.2 are preserved rejected experiments.
 
-- Men, women, and unisex departments
-- 12 product categories and 40 synthetic products
-- Category, size, color, price, and text filters
-- Sorting, responsive product grid, and product detail dialog
-- Size/color selection and functional cart with quantities
-- Cart persistence through `localStorage`
-- Responsive mobile layout and newsletter interaction
+## The problem
 
-Checkout is intentionally a demo because the project is frontend-only.
+Websites expose navigation, terminology, warnings, and workflow choices at once. The bottleneck for an unfamiliar task is often deciding what matters next—not merely clicking. This matters most where a mistake has financial, identity, or public-service consequences.
 
-## Extract interactive elements with Playwright
+## What GuideMode does
+
+GuideMode starts only after an explicit goal. It observes the current tab as bounded semantics, asks a Navigator for one safe next step, and verifies fresh browser state. A Replanner handles failures, stalls, and cycles. The visual layer focuses one current target while preserving critical, consequential, and uncertain information. With no goal, it makes no model calls and does not style, highlight, or scroll the page.
+
+```mermaid
+flowchart TD
+ G[User goal] --> P[Extension side panel]
+ P --> O[Semantic observer]
+ O --> R[Route Scout]
+ O --> N[Navigator]
+ R --> N
+ N --> S[Guide State]
+ S --> GM[Guide Me: human action]
+ S --> DM[Do It For Me: safe executor]
+ GM --> F[Fresh observation]
+ DM --> F
+ F --> V[Semantic progress verification]
+ V -->|stalled or cyclic| RP[Replanner]
+ RP --> N
+ V -->|progress| N
+ G --> FP[Focus Planner]
+ S --> FP
+ FP --> SO[Deterministic safety overrides]
+ SO --> VL[Reversible visual layer]
+```
+
+Evaluator ground truth is separate and never enters a model prompt.
+
+## Demo
+
+| Idle—no goal | Goal-conditioned step | Manual safety boundary |
+|---|---|---|
+| ![Idle](artifacts/guidemode-goal-conditioned-2026-08-30T18-17-27-440Z/01-idle-no-goal.png) | ![First step](artifacts/guidemode-goal-conditioned-2026-08-30T18-17-27-440Z/02-first-guided-step.png) | ![Manual step](artifacts/guidemode-goal-conditioned-2026-08-30T18-17-27-440Z/06-sensitive-manual-step.png) |
+
+[All eight goal-conditioned screenshots](artifacts/guidemode-goal-conditioned-2026-08-30T18-17-27-440Z/)
+
+## Safety model
+
+The model chooses only bounded actions using supplied opaque refs. It cannot provide selectors, XPath, JavaScript, arbitrary URLs, or arbitrary query strings. Refs expire with each observation; single-flight sessions and generation checks reject late/stale actions. Passwords, identity numbers, payment data, CAPTCHA, authentication, purchases, payments, and consequential submissions pause for the human. Tests used synthetic or public pages, no private production data, and executed zero prohibited consequential actions.
+
+## Measured results
+
+| System | Threadly success |
+|---|---:|
+| Fair Baseline v1 | 3/10 (30%) |
+| Agent Core v2 | 10/10 (100%) |
+
+This is a **+70 percentage-point** improvement and **3.33×** the baseline success rate. CivicPortal improved from v1's 4/6 to v2's 5/6. Focus Planner achieved 12/12 relevant-control recall and zero unsafe omissions. [RESULTS.md](RESULTS.md) is the canonical metrics source.
+
+## Try the extension
 
 ```powershell
 npm install
 npx playwright install chromium
-npm run extract
+Copy-Item .env.example .env
+# Set GEMINI_API_KEY in .env
+npm run extension:server
 ```
 
-The extractor prints JSON containing sequential references (`e1`, `e2`, ...), tag,
-ID, role, accessible-ish name, value, checked state, disabled state, and group context.
+Open `chrome://extensions` or `edge://extensions`, enable Developer mode, choose **Load unpacked**, and select `guidemode-extension/`. See [REPRODUCING.md](REPRODUCING.md).
 
-## Browser-agent MVP
-
-Put your Gemini key in `.env`:
+## Repository structure
 
 ```text
-GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-2.5-flash
+agent-core-v2/               final frozen benchmark runtime
+agent-core-v2.1/             rejected finish-validation experiment
+agent-core-v2.2/             rejected compatibility/context experiment
+civic-portal/                synthetic public-service domain
+guidemode/                   frozen visual layer
+guidemode-extension/         Manifest V3 product
+guidemode-extension-server/  local Gemini adapter
+production-eval/             frozen external manifest
+trajectories/                evaluation evidence
+artifacts/                   screenshots
 ```
 
-Then run each milestone:
+## Limitations and main failure mode
 
-```powershell
-# Deterministic executor/verifier smoke test (does not call Gemini)
-npm run agent:smoke
+GuideMode depends on website semantics. Custom controls, closed shadow roots/canvas, incomplete accessible semantics, ambiguous committed-result state, and unusual routing can leave insufficient evidence. Examples are CivicPortal's expired-eight-month wrong workflow, Edenrobe's checked-vs-committed filter ambiguity, and a GOV.UK Guide Me run classified `SITE_INCOMPATIBLE`. Model latency remains the largest extension bottleneck.
 
-# Gemini chooses exactly one action; Playwright executes and verifies it
-npm run agent:one
+## Improvement journey and instructions
 
-# Gemini repeats one safe action at a time until all five filters match
-npm run agent:run
+See [IMPROVEMENT_CHANGELOG.md](IMPROVEMENT_CHANGELOG.md), [TRAJECTORIES.md](TRAJECTORIES.md), and [AGENT_INSTRUCTIONS.md](AGENT_INSTRUCTIONS.md).
 
-# Run the predeclared 10-goal robustness evaluation
-npm run agent:evaluate
+## Hot Take
 
-# Validate the harness and executor without API calls
-npm run agent:evaluate:smoke
+**More browser metadata is not necessarily better context.** Stable v2 scored 10/10 with 181,468 input tokens, 3.5 calls/task, and 18.24 s/task. v2.2 fell to 9/10 with 627,413 input tokens, 5.0 calls/task, and 23.50 s/task. Extra geometry led Gemini to treat visually hidden but label-executable controls as unusable. Expose task-relevant semantics, not every fact the runtime knows.
 
-# Run the separate simple-baseline comparison
-npm run baseline:evaluate
+## Built during the hackathon / external components
 
-# Run Fair Baseline v1 with hidden-control compatibility
-npm run baseline:fair:evaluate
+The synthetic sites, agents, evaluations, Focus Planner, visual layer, Route Scout, lifecycle hardening, GuideState, and extension integration are represented by this repository's hackathon history. External tools were not created by this project: Node.js, npm, Chromium, Playwright, Gemini/`@google/genai`, and `dotenv`. Motion examples were inspiration only; Motion is not a dependency and no Motion code/assets were copied. See [LICENSE.md](LICENSE.md).
 
-# Evaluate the non-visual GuideMode Focus Planner
-npm run focus:evaluate
+## License
 
-# Apply and validate GuideMode Visual Layer v1 across three goals
-npm run guidemode:visual:evaluate
-
-# Run the frozen system against the separate CivicPortal domain
-npm run civic:evaluate
-
-# Validate the importable Agent Core v2 runtime without Gemini calls
-npm run agent:v2:test
-
-# Evaluate Agent Core v2 on both frozen benchmarks
-npm run agent:v2:evaluate
-```
-
-Every run writes a JSON trajectory under `trajectories/`. Gemini receives only the
-relevant controls and can return only `click`, `check`, `uncheck`, `fill`, or
-`select` with an opaque element ref. The local executor owns the Playwright calls
-and selectors, and verification reads the resulting browser state directly.
-
-The robustness suite includes already-satisfied, impossible, ambiguous-control,
-dynamic-rerender, and disabled-option cases. Its combined JSON report records the
-expected result before execution plus model/prompt metadata, per-step latency,
-errors, and retry counts.
-
-## Simple baseline
-
-`baseline-eval.js` is intentionally separate from Agent Core v1. It implements a
-plain observe → Gemini action → Playwright execution loop with basic semantic
-controls, structured actions, and a 10-step limit. Evaluation ground truth stays
-outside its prompt. The frozen comparison result is documented in
-`BASELINE_RESULTS.md`.
-
-`fair-baseline-eval.js` preserves that simple architecture and adds only
-associated-label activation for visually hidden checkbox/radio controls. Its
-frozen result is documented in `FAIR_BASELINE_RESULTS.md`.
-
-The non-visual GuideMode decision layer lives in `focus-planner.js`; its separate
-five-case evaluation and frozen metrics are documented in
-`GUIDEMODE_FOCUS_PLANNER.md`. That planner remains frozen and separate from rendering.
-
-GuideMode Visual Layer v1 lives under `guidemode/` and is exercised by
-`guidemode-visual-eval.js`. It adapts page salience reversibly and renders its
-control surface in Shadow DOM. See `GUIDEMODE_VISUAL_LAYER.md` for screenshots,
-safety results, metrics, and known limitations.
-
-`civic-portal/` is a separate fictional public-service SPA used for cross-domain
-generalization. Its unchanged-system benchmark and screenshots are documented in
-`CIVICPORTAL_CROSS_DOMAIN.md`.
-
-The separate importable Agent Core v2 runtime lives under `agent-core-v2/`. Its
-semantic content extraction, resilient fresh-state executor, progress signatures,
-cycle detection, and Navigator/Replanner orchestration are documented in
-`AGENT_CORE_V2.md`.
+No repository-wide project license has yet been selected. See [LICENSE.md](LICENSE.md).

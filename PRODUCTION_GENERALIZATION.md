@@ -14,6 +14,8 @@ The six tasks and evaluation ground truth were committed before Agent Core execu
 | GOV.UK | 2/3 (66.7%) | 4.33 | 8.33 | 33.87 s |
 | Overall | 5/6 (83.3%) | 3.50 | 6.17 | 29.36 s |
 
+This is the frozen evaluator outcome, not an unqualified production-success claim. Two Edenrobe tasks lacked unambiguous proof that every checked filter had been committed to the catalog result state; only 3/6 tasks had unambiguous end-to-end functional evidence. Production pages are mutable external-generalization evidence and are not required to reproduce the primary controlled result.
+
 The run used 354,398 prompt tokens, 4,689 candidate tokens, and 359,087 total tokens. No prohibited action was attempted or executed.
 
 ## Failures and incompatibilities

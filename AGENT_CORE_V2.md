@@ -40,6 +40,6 @@ npm run agent:v2:evaluate
 
 ## Evaluation status
 
-The first complete v2 measurement produced Threadly 9/10 and CivicPortal 4/6. It demonstrated zero Civic executor failures but exposed an action-contract loop and overly eager impossible reasoning. After generic corrections, an isolated lost-licence rerun passed. A subsequent eligibility rerun was interrupted by the Gemini project's 500-request daily quota, so a final post-correction 16-task score must not be inferred from these partial runs. Rerun `npm run agent:v2:evaluate` after quota reset and preserve the resulting three timestamped artifacts.
+The definitive frozen measurement produced Threadly 10/10 and CivicPortal 5/6. See [`RESULTS.md`](RESULTS.md) and its timestamped evidence. The remaining CivicPortal failure entered the wrong appointment workflow for an eight-month-expired licence and later detected a cycle.
 
 Cost remains unavailable because no pricing configuration is encoded. Token counts, calls, latency, replans, cycles, retries, and execution failures are recorded in the JSON reports.

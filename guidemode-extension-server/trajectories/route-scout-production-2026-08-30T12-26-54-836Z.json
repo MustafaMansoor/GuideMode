@@ -1,0 +1,186 @@
+{
+  "run_id": "a14ce585-144a-4a6d-b79f-dafef6830b10",
+  "component": "guidemode-extension-route-scout-production",
+  "started_at": "2026-08-30T12:26:54.836Z",
+  "tests": [
+    {
+      "site": "GOV.UK",
+      "goal": "Help me find how to replace a lost driving licence.",
+      "status": "pass",
+      "start_url": "https://www.gov.uk/renew-driving-licence",
+      "final_url": "https://www.gov.uk/replace-a-driving-licence",
+      "raw_links": 86,
+      "unique_same_origin_routes": 50,
+      "routes_sent_to_navigator": 0,
+      "top_ranked_candidates": [],
+      "chosen_steps": [
+        {
+          "step": 1,
+          "status": "action",
+          "action": {
+            "action": "click",
+            "ref": "e4",
+            "value": null,
+            "reason": "The current page is for renewing a driving licence, but the user is looking to replace a lost driving licence. We need to use the search menu to find the correct service page for replacing a lost driving licence.",
+            "evidence_refs": [
+              "c1"
+            ]
+          },
+          "top_routes": []
+        },
+        {
+          "step": 2,
+          "status": "action",
+          "action": {
+            "action": "fill",
+            "ref": "e5",
+            "value": "replace lost driving licence",
+            "reason": "The current page is about renewing a driving licence, but the user's goal is to find how to replace a lost driving licence. I need to search for 'replace lost driving licence' using the site search input to find the correct page.",
+            "evidence_refs": [
+              "e5",
+              "e6"
+            ]
+          },
+          "top_routes": []
+        },
+        {
+          "step": 3,
+          "status": "action",
+          "action": {
+            "action": "submit_form",
+            "ref": "f1",
+            "value": null,
+            "reason": "Submit the search form to find how to replace a lost driving licence.",
+            "evidence_refs": [
+              "e5",
+              "e6"
+            ]
+          },
+          "top_routes": []
+        },
+        {
+          "step": 4,
+          "status": "action",
+          "action": {
+            "action": "click",
+            "ref": "e6",
+            "value": null,
+            "reason": "The search input field has been filled with 'replace lost driving licence', and we need to click the search button to submit the form and find the correct page for replacing a lost driving licence.",
+            "evidence_refs": [
+              "e5",
+              "e6"
+            ]
+          },
+          "top_routes": []
+        },
+        {
+          "step": 5,
+          "status": "action",
+          "action": {
+            "action": "navigate_route",
+            "ref": "r28",
+            "value": null,
+            "reason": "Navigate to the guide for replacing a lost driving licence via the direct route link 'Replace a lost, stolen, damaged or destroyed driving licence'.",
+            "evidence_refs": [
+              "r28",
+              "c3"
+            ]
+          },
+          "top_routes": [
+            {
+              "ref": "r28",
+              "text": "Replace a lost, stolen, damaged or destroyed driving licence",
+              "path": "/replace-a-driving-licence",
+              "same_origin": true,
+              "context": "Search all content on GOV.UK",
+              "score": 47,
+              "reason": "4 goal tokens matched link text; 3 goal tokens matched route path; same-origin route"
+            },
+            {
+              "ref": "r40",
+              "text": "Next page : 2 of 550",
+              "path": "/search/all?keywords=replace+lost+driving+licence&page=2",
+              "same_origin": true,
+              "context": "Search all content on GOV.UK",
+              "score": 24,
+              "reason": "4 goal tokens matched route path; same-origin route"
+            },
+            {
+              "ref": "r2",
+              "text": "Skip to main content",
+              "path": "/search/all?keywords=replace+lost+driving+licence#content",
+              "same_origin": true,
+              "context": "document",
+              "score": 24,
+              "reason": "4 goal tokens matched route path; same-origin route"
+            },
+            {
+              "ref": "r32",
+              "text": "Replace a lost, stolen or damaged Driver CPC card",
+              "path": "/replace-driver-cpc-card",
+              "same_origin": true,
+              "context": "Search all content on GOV.UK",
+              "score": 23,
+              "reason": "2 goal tokens matched link text; 1 goal token matched route path; same-origin route"
+            },
+            {
+              "ref": "r30",
+              "text": "Apply by phone or by post",
+              "path": "/replace-a-driving-licence/apply-by-phone-or-by-post",
+              "same_origin": true,
+              "context": "Search all content on GOV.UK",
+              "score": 19,
+              "reason": "3 goal tokens matched route path; same-origin route"
+            },
+            {
+              "ref": "r29",
+              "text": "Apply online",
+              "path": "/replace-a-driving-licence/apply-online",
+              "same_origin": true,
+              "context": "Search all content on GOV.UK",
+              "score": 19,
+              "reason": "3 goal tokens matched route path; same-origin route"
+            },
+            {
+              "ref": "r39",
+              "text": "Renew or replace your adult passport",
+              "path": "/renew-adult-passport",
+              "same_origin": true,
+              "context": "Search all content on GOV.UK",
+              "score": 11,
+              "reason": "1 goal token matched link text; same-origin route"
+            }
+          ]
+        }
+      ],
+      "steps": 5,
+      "prohibited_actions_executed": 0,
+      "note": "Observed refs only; no sign-in or transactional service."
+    },
+    {
+      "site": "Edenrobe",
+      "goal": "Help me find a blue men's shirt.",
+      "status": "observed",
+      "final_url": "https://edenrobe.com/",
+      "raw_links": 532,
+      "unique_routes": 160,
+      "forms": [
+        {
+          "method": "POST",
+          "purpose": "form",
+          "auto_submittable": false
+        },
+        {
+          "method": "GET",
+          "purpose": "form",
+          "auto_submittable": true
+        }
+      ],
+      "get_filter_form_found": true,
+      "restore_preserved_state": true,
+      "prohibited_actions_executed": 0,
+      "note": "No filter submission claimed unless native GET form semantics exist; no cart or checkout."
+    }
+  ],
+  "finished_at": "2026-08-30T12:27:25.701Z"
+}
