@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const { observePage, compactObservation } = require('./observer');
 const { validateAction, validateFinish, executeResilient } = require('./executor');
+const { validateFinish: validateDeterministicFinish } = require('./finish-validator');
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
@@ -109,6 +110,47 @@ const { validateAction, validateFinish, executeResilient } = require('./executor
     const evidence = observation.content.find(block => /Online renewal costs/.test(block.text));
     validateFinish({ action: 'finish', status: 'completed', answer: 'It costs £14.', evidence_refs: [evidence.ref] }, observation.content);
     assert.throws(() => validateFinish({ action: 'finish', status: 'completed', answer: 'It costs £20.', evidence_refs: ['c999'] }, observation.content), /unsupported finish evidence/);
+
+    const finish = (goal, proposedFinish, currentObservation) => validateDeterministicFinish({ goal, proposedFinish,
+      currentObservation, currentControls: currentObservation.controls, currentContent: currentObservation.content,
+      currentResultState: currentObservation.result_state });
+    const selectedControls = [
+      { ref:'e1', role:'radio', name:'Women', value:'Women', group_context:'Department', checked:true },
+      { ref:'e2', role:'checkbox', name:'Shirts', value:'Shirts', group_context:'Category', checked:true },
+      { ref:'e3', role:'checkbox', name:'S', value:'S', group_context:'Size', checked:true },
+      { ref:'e4', role:'checkbox', name:'Blue', value:'Blue', group_context:'Color', checked:true },
+      { ref:'e5', role:'slider', name:'Up to $60', value:'60', group_context:'Price', capabilities:{ editable:false } }
+    ];
+    const noResults = { controls:selectedControls, content:[{ref:'c1',type:'heading',text:'No pieces found',context:'Results'}],
+      result_state:{result_count:0,control_selected_labels:['Women','Shirts','S','Blue'],visible_result_summary:null} };
+    let finishValidation = finish("Women's blue shirt, S, under $60", {action:'finish',status:'completed',answer:'Found one.',evidence_refs:['c1']}, noResults);
+    assert.equal(finishValidation.accepted, false); // A: completion contradicts zero results.
+    assert(finishValidation.contradictions.length > 0);
+    finishValidation = finish("Women's blue shirt, S, under $60", {action:'finish',status:'impossible',reason:'No matches.',evidence_refs:['c1']}, noResults);
+    assert.equal(finishValidation.accepted, true); // B: impossible is supported.
+
+    const positive = { controls:selectedControls, content:[{ref:'c2',type:'result_summary',count_observed:1,samples:[{title:'Blue shirt',price:'$50',metadata:'Women S'}]}],
+      result_state:{result_count:1,control_selected_labels:['Women','Shirts','S','Blue'],visible_result_summary:{count_observed:1,samples:[{title:'Blue shirt'}]}} };
+    finishValidation = finish("Women's blue shirt, S, under $60", {action:'finish',status:'completed',answer:'Found one.',evidence_refs:['c2']}, positive);
+    assert.equal(finishValidation.accepted, true); // C: positive matching result and coverage.
+    const missing = { ...positive, controls:selectedControls.map(control => control.ref === 'e4' ? {...control,checked:false} : control) };
+    finishValidation = finish("Women's blue shirt, S, under $60", {action:'finish',status:'completed',answer:'Found one.',evidence_refs:['c2']}, missing);
+    assert.equal(finishValidation.accepted, false); // D: explicit color constraint absent.
+    assert(finishValidation.missing_evidence.some(reason => reason.includes('color=Blue')));
+
+    const information = { controls:[], content:[{ref:'c10',type:'fee_or_price',text:'Online renewal costs £14.',context:'Renewal'},
+      {ref:'c11',type:'paragraph',text:'Contact the transport office.',context:'Help'}], result_state:{} };
+    finishValidation = finish('What does renewal cost?', {action:'finish',status:'completed',answer:'£14.',evidence_refs:['c10']}, information);
+    assert.equal(finishValidation.accepted, true); // E: cited fee answers information goal.
+    finishValidation = finish('What does renewal cost?', {action:'finish',status:'completed',answer:'Contact the office.',evidence_refs:['c11']}, information);
+    assert.equal(finishValidation.accepted, false); // F: cited content is unrelated.
+    finishValidation = finish('Find a purple service', {action:'finish',status:'impossible',reason:'None.',evidence_refs:['c11']}, information);
+    assert.equal(finishValidation.accepted, false); // G: impossibility lacks support.
+    const eligibility = { controls:[], content:[{ref:'c20',type:'alert',text:'You are not eligible for online renewal.',context:'Eligibility'}],
+      result_state:{status_text:['You are not eligible for online renewal.']} };
+    finishValidation = finish('Renew my licence online', {action:'finish',status:'completed',answer:'Ready.',evidence_refs:['c20']}, eligibility);
+    assert.equal(finishValidation.accepted, false); // H: explicit eligibility contradiction.
+    assert(finishValidation.contradictions.length > 0);
 
     await page.setContent(`<main>${Array.from({ length: 100 }, (_, index) => `<a href="#${index}">Unrelated item ${index}</a>`).join('')}
       <label for="required">Required licence number</label><input id="required" required aria-invalid="true"><div role="alert">Licence number is required</div></main>`);

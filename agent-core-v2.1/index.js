@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const { observePage, compactObservation, actionIdentity } = require('./observer');
 const { executeResilient, validateAction } = require('./executor');
 const { ProgressTracker } = require('./progress');
+const { validateFinish } = require('./finish-validator');
 
 const VERSION = 'agent-core-v2.1-production-hardening';
 const PROMPT_VERSION = 'agent-core-v2.1-navigator-replanner-v1';
@@ -41,7 +42,7 @@ async function runAgent(options) {
     usage: { prompt_tokens: 0, candidate_tokens: 0, total_tokens: 0, estimated_cost_usd: null } };
   const tracker = new ProgressTracker({ cycleThreshold: 2 });
   let lastCallAt = 0, activeSubgoal = null, avoidActions = [], finalStatus = 'step_limit';
-  let failureReason = 'maximum step limit reached', finalResult = null, lastResultEffect = null;
+  let failureReason = 'maximum step limit reached', finalResult = null, lastResultEffect = null, consecutiveFinishRejections = 0;
 
   function compact(observation) {
     const result = compactObservation(observation, goal, compactionLimits); const c = result.compaction;
@@ -123,6 +124,34 @@ async function runAgent(options) {
       if (!decisionResponse) { if (['impossible','needs_human'].includes(finalStatus)) break; continue; }
       const decision = decisionResponse.value;
       if (decision.action === 'finish') {
+        const finishValidation = validateFinish({ goal, proposedFinish: decision, currentObservation: observation,
+          currentControls: observation.controls, currentContent: modelObservation.content, currentResultState: observation.result_state });
+        if (!finishValidation.accepted) {
+          trajectory.unsupported_finish_attempts++; consecutiveFinishRejections++;
+          const signature = observation.progress_signature;
+          const progress = tracker.record({ actionIdentity: `finish|${decision.status}`, previousSignature: signature, newSignature: signature, actionSuccess: false });
+          if (progress.cycleDetected) trajectory.cycles_detected++;
+          trajectory.stalls_detected++;
+          let replanResponse = null;
+          if (consecutiveFinishRejections >= 2 || progress.replanRequired) {
+            avoidActions = [...new Set([...avoidActions, `finish|${decision.status}`])].slice(-8);
+            replanResponse = await replan(observation, modelObservation,
+              `Finish proposal rejected deterministically: ${[...finishValidation.reasons, ...finishValidation.missing_evidence].join('; ')}`);
+          }
+          trajectory.steps.push({ step: stepNumber, observation_summary: observation.summary, duplicate_control_groups: observation.duplicate_log,
+            compaction: modelObservation.compaction, semantic_content_blocks: modelObservation.content, model_role: 'navigator', model_response: decision,
+            browser_action: null, executor_outcome: { execution_outcome: 'finish_rejected', action_success: false }, action_success: false,
+            result_effect_confirmed: 'unknown', previous_progress_signature: signature, new_progress_signature: signature,
+            semantic_progress: false, cycle_detected: progress.cycleDetected, replan_triggered: Boolean(replanResponse),
+            finish_proposed: true, finish_accepted: false,
+            finish_rejection_reason: [...finishValidation.reasons, ...finishValidation.missing_evidence].join('; '), finish_validation: finishValidation,
+            ...(replanResponse ? { replan: { model_role: 'replanner', response: replanResponse.value, retries: replanResponse.retries, latency_ms: replanResponse.latency_ms } } : {}),
+            retries: decisionResponse.retries, latency_ms: decisionResponse.latency_ms + (replanResponse?.latency_ms || 0) });
+          if (replanResponse?.value.status === 'goal_impossible') { finalStatus = 'impossible'; failureReason = replanResponse.value.diagnosis; break; }
+          if (replanResponse?.value.status === 'needs_human') { finalStatus = 'needs_human'; failureReason = replanResponse.value.diagnosis; break; }
+          continue;
+        }
+        consecutiveFinishRejections = 0;
         finalStatus = decision.status; failureReason = decision.status === 'impossible' ? decision.reason : null;
         finalResult = { status: decision.status, answer: decision.answer || null, reason: decision.reason || null, evidence_refs: decision.evidence_refs };
         if (decision.status === 'impossible') trajectory.impossible_conclusions++;
@@ -131,7 +160,8 @@ async function runAgent(options) {
           model_response: decision, browser_action: null, executor_outcome: { execution_outcome: 'finish', action_success: true },
           action_success: true, result_effect_confirmed: 'unknown', previous_progress_signature: observation.progress_signature,
           new_progress_signature: observation.progress_signature, semantic_progress: false, cycle_detected: false,
-          replan_triggered: false, retries: decisionResponse.retries, latency_ms: decisionResponse.latency_ms });
+          replan_triggered: false, finish_proposed: true, finish_accepted: true, finish_validation: finishValidation,
+          retries: decisionResponse.retries, latency_ms: decisionResponse.latency_ms });
         break;
       }
       const identity = actionIdentity(decision, observation.controls), previousSignature = observation.progress_signature;

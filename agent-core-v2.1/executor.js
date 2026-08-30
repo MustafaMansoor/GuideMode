@@ -1,7 +1,7 @@
 const { observePage } = require('./observer');
 const { analyzeResultEffect } = require('./result-verifier');
 
-function validateFinish(action, content) {
+function validateFinishShape(action, content) {
   if (action.action !== 'finish') return true;
   if (!['completed','impossible'].includes(action.status)) throw new Error('finish requires completed or impossible status');
   const valid = new Set(content.map(block => block.ref));
@@ -15,7 +15,7 @@ function validateFinish(action, content) {
 
 function validateAction(action, controls, content = []) {
   if (!action || !['click','check','uncheck','fill','select','finish'].includes(action.action)) throw new Error('unsupported action');
-  if (action.action === 'finish') { validateFinish(action, content); return null; }
+  if (action.action === 'finish') { validateFinishShape(action, content); return null; }
   const control = controls.find(item => item.ref === action.ref);
   if (!control) throw new Error(`unknown ref ${action.ref}`);
   if (control.disabled) throw new Error(`control ${action.ref} is disabled`);
@@ -79,4 +79,4 @@ async function executeResilient(page, action, beforeObservation) {
     result_effect_evidence: resultEffect, latency_ms: Date.now() - started, post_action_observation: postActionObservation };
 }
 
-module.exports = { validateAction, validateFinish, executeResilient, semanticMatch };
+module.exports = { validateAction, validateFinish: validateFinishShape, validateFinishShape, executeResilient, semanticMatch };
