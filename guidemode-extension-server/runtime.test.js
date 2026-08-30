@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const { ExtensionV2Adapter, validateAction, consequential, sensitive, compactModelContent } = require('./v2-adapter');
+const { ExtensionV2Adapter, validateAction, consequential, sensitive, compactModelContent, initialTargetIsGrounded } = require('./v2-adapter');
 const { plannerObservation } = require('./focus-adapter');
 const { searchRoutes } = require('./route-scout');
 const { createRequestSnapshot, invalidRef, staleRef } = require('./ref-lifecycle');
@@ -27,6 +27,7 @@ assert.equal(searchRoutes('purple XXL shirt under five',[{ref:'r9',text:'New arr
 const planner = plannerObservation(observation); assert(planner.some(item => item.ref === 'c1' && item.visible_text.includes('£14')));
 const compacted=compactModelContent({...observation,content:[...observation.content,{ref:'c2',type:'paragraph',text:'Search',context:''},{ref:'c3',type:'alert',text:'Search',context:''}]},[]);
 assert(!compacted.some(item=>item.ref==='c2'));assert(compacted.some(item=>item.ref==='c3'));
+assert.equal(initialTargetIsGrounded('replace lost licence',{action:'navigate_route'},observation.routes[0],1),true);assert.equal(initialTargetIsGrounded('replace lost licence',{action:'click'},{name:'Open shopping bag',role:'button'},1),false);assert.equal(initialTargetIsGrounded('replace lost licence',{action:'fill',value:'lost licence'},{name:'Search',role:'searchbox'},1),true);
 
 const fakeAi = { models: { generateContent: async ({ contents }) => ({
   text: JSON.stringify(contents.includes('Replanner') ? { diagnosis: 'Use another route', next_subgoal: 'Search', avoid_actions: [], evidence_refs: ['c1'], status: 'continue' } :
@@ -48,6 +49,10 @@ const fakeAi = { models: { generateContent: async ({ contents }) => ({
   const impossibleAdapter = new ExtensionV2Adapter({ ai: impossibleAi, requestsPerMinute: 100000 });
   const impossible = await impossibleAdapter.step({ sessionId: 'impossible-test', tabId: 2, goal: 'Find an unavailable combination', observation, maxSteps: 5 });
   assert.equal(impossible.status, 'impossible'); assert.equal(impossibleAdapter.sessions.get('impossible-test').trajectory.replanner_calls, 1);
+  const answerAdapter=new ExtensionV2Adapter({requestsPerMinute:100000,ai:{models:{generateContent:async()=>({text:JSON.stringify({action:'answer',ref:null,value:null,reason:'Online renewal costs £14.',evidence_refs:['c1']})})}}});
+  const answered=await answerAdapter.step({sessionId:'answer',tabId:9,goal:'What does renewal cost?',observation,generation:1,maxSteps:5});assert.equal(answered.status,'completed');assert.deepEqual(answered.evidence_refs,['c1']);
+  const unsupportedAnswerAdapter=new ExtensionV2Adapter({requestsPerMinute:100000,ai:{models:{generateContent:async()=>({text:JSON.stringify({action:'answer',ref:null,value:null,reason:'Unsupported.',evidence_refs:['c999']})})}}});
+  const unsupported=await unsupportedAnswerAdapter.step({sessionId:'unsupported-answer',tabId:10,goal:'What does renewal cost?',observation,generation:1,maxSteps:5});assert.equal(unsupported.code,'UNSUPPORTED_ANSWER');
   let release; const delayed = new Promise(resolve => { release = resolve; }); let calls = 0;
   const delayedAi = { models: { generateContent: async () => { calls++; await delayed; return { text: JSON.stringify({ action:'fill',ref:'e1',value:'late',reason:'',evidence_refs:[] }) }; } } };
   const lateAdapter = new ExtensionV2Adapter({ ai: delayedAi, requestsPerMinute: 100000 });

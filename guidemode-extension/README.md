@@ -41,6 +41,8 @@ Edge:
 
 Open any ordinary HTTP/HTTPS page, select the GuideMode toolbar icon to open the side panel, enter a goal, and choose **Start GuideMode**.
 
+Choose **Guide me** to receive one highlighted, verified next step at a time while you operate the page. Choose **Do it for me** to let the bounded executor perform ordinary safe steps. Without an active goal, GuideMode does not classify, style, scroll, or alter the page.
+
 ## Controls
 
 - **Stop** immediately cancels the current loop. It does not undo webpage state.

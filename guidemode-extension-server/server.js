@@ -46,7 +46,7 @@ const server = http.createServer(async (request, response) => {
         try {
           const key = focusContextKey(body.goal, body.observation); const cached = focusCache.get(body.sessionId);
           if (cached?.key === key) { result.focus_plan = reconcileFocusPlan(cached.plan, cached.elements, body.observation); result.timings.focus_planner_gemini_ms = 0; result.focus_cache_hit = true; }
-          else { await adapter.pace(); const focusStarted = Date.now(); result.focus_plan = await planFocus({ ai: adapter.ai, model: adapter.model, goal: body.goal, observation: body.observation });
+          else { await adapter.pace(); const focusStarted = Date.now(); result.focus_plan = await planFocus({ ai: adapter.ai, model: adapter.model, goal: body.goal, observation: body.observation, nextStep: result.action });
             result.timings.focus_planner_gemini_ms = Date.now() - focusStarted; focusCache.set(body.sessionId, { key, plan: result.focus_plan, elements: plannerObservation(body.observation) }); }
         }
         catch (error) { result.focus_plan_error = error.message; }

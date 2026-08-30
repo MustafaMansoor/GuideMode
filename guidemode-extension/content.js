@@ -5,17 +5,20 @@
 
   const MSG = {
     OBSERVE: 'GM_OBSERVE', EXECUTE: 'GM_EXECUTE', APPLY_PLAN: 'GM_APPLY_PLAN',
-    CLEAR_PLAN: 'GM_CLEAR_PLAN'
+    CLEAR_PLAN: 'GM_CLEAR_PLAN', PAGE_CHANGED: 'GM_PAGE_CHANGED'
   };
   const ACTIONS = new Set(['click', 'fill', 'check', 'uncheck', 'select', 'scroll', 'focus', 'navigate_route', 'submit_form']);
   let refMap = new Map();
   let routeMap = new Map();
   let formMap = new Map();
+  let routeNodeMap = new Map();
+  let contentMap = new Map();
   let currentObservationId = null;
   let observationGeneration = 0;
   let currentPlan = null;
   let visualEnabled = false;
   let styleElement = null;
+  let guideLabel = null;
   const touched = new Set();
 
   const clean = (value, limit = 260) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, limit);
@@ -92,6 +95,7 @@
     refMap = new Map();
     routeMap = new Map();
     formMap = new Map();
+    routeNodeMap = new Map(); contentMap = new Map();
     currentObservationId = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
     observationGeneration++;
     const interactionRoot = activeInteractionRoot();
@@ -121,7 +125,7 @@
 
     const routeStarted = performance.now();
     const rawRouteNodes = [...interactionRoot.querySelectorAll('a[href],[role="link"][href]')];
-    const deduplicatedRoutes = new Map();
+    const deduplicatedRoutes = new Map(); const routeNodesByHref=new Map();
     for (const element of rawRouteNodes) {
       const normalized = normalizeRoute(element.getAttribute('href'));
       if (!normalized) continue;
@@ -129,10 +133,10 @@
       const key = normalized.href;
       const existing = deduplicatedRoutes.get(key);
       const richness = item => clean(`${item.text} ${item.context}`).length + (item.text ? 80 : 0) - (/footer/i.test(item.context) ? 30 : 0);
-      if (!existing || richness(candidate) > richness(existing)) deduplicatedRoutes.set(key, candidate);
+      if (!existing || richness(candidate) > richness(existing)){deduplicatedRoutes.set(key,candidate);routeNodesByHref.set(key,element)}
     }
     const routes = [...deduplicatedRoutes.values()].slice(0, 160).map((route, index) => {
-      const ref = `r${index + 1}`; routeMap.set(ref, route); return { ref, ...route };
+      const ref = `r${index + 1}`; routeMap.set(ref, route);routeNodeMap.set(ref,routeNodesByHref.get(route.href)); return { ref, ...route };
     });
     const routeScoutMs = performance.now() - routeStarted;
 
@@ -165,7 +169,7 @@
         /^H[1-3]$/.test(element.tagName) ? 'heading' : element.tagName === 'LI' ? 'list_item' :
         /price|fee|cost/i.test(`${element.className} ${text.slice(0, 40)}`) ? 'fee_or_price' :
         /error|warning|validation|invalid/i.test(`${element.className} ${role}`) ? 'validation' : 'paragraph';
-      content.push({ ref: `c${content.length + 1}`, type, text, context: groupContext(element) });
+      const ref=`c${content.length+1}`;content.push({ref,type,text,context:groupContext(element)});contentMap.set(ref,element);
     }
     const page = { url: location.href, title: document.title, heading: clean(document.querySelector('main h1,[role="main"] h1,h1')?.textContent || document.title) };
     const signaturePayload = {
@@ -190,10 +194,13 @@
   const visualCss = `
     [data-guidemode="deemphasize"]{opacity:.58!important;filter:saturate(.72) contrast(.93)!important;transition:opacity .18s ease,filter .18s ease!important}
     [data-guidemode="relevant"]{opacity:1!important;filter:none!important;outline:2px solid #176b52!important;outline-offset:3px!important;border-radius:4px}
+    [data-guidemode="supporting"]{opacity:1!important;filter:none!important;box-shadow:inset 3px 0 0 rgba(23,107,82,.35)!important}
     [data-guidemode="current"]{opacity:1!important;filter:none!important;outline:3px solid #075bd8!important;outline-offset:4px!important;box-shadow:0 0 0 7px rgba(7,91,216,.18)!important;border-radius:5px}
     [data-guidemode="consequential"]{opacity:1!important;filter:none!important;outline:2px solid #8b4a08!important;outline-offset:3px!important}
     [data-guidemode="critical"],[data-guidemode="uncertain"],[data-guidemode="preserved"]{opacity:1!important;filter:none!important}
     @media(prefers-reduced-motion:reduce){[data-guidemode]{transition:none!important}}
+    #guidemode-next-step{position:fixed;z-index:2147483647;max-width:260px;padding:8px 10px;border-radius:8px;background:#17211e;color:#fff;font:500 14px/1.35 system-ui,-apple-system,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.22);pointer-events:none}
+    #guidemode-next-step small{display:block;margin-bottom:2px;color:#b9d8ce;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
   `;
   function clearVisualAttributes() {
     for (const node of touched) {
@@ -201,7 +208,10 @@
       node.removeAttribute('data-guidemode'); node.removeAttribute('data-guidemode-current'); node.removeAttribute('data-guidemode-proxy');
     }
     touched.clear();
+    guideLabel?.remove();guideLabel=null;
   }
+  const nodeForRef=ref=>refMap.get(ref)||routeNodeMap.get(ref)||formMap.get(ref)||contentMap.get(ref);
+  function positionGuideLabel(target,instruction){if(!target||!isRendered(target))return;guideLabel=document.createElement('div');guideLabel.id='guidemode-next-step';guideLabel.setAttribute('role','note');const small=document.createElement('small');small.textContent='Next step';const text=document.createElement('span');text.textContent=instruction;guideLabel.append(small,text);document.documentElement.append(guideLabel);const rect=target.getBoundingClientRect(),box=guideLabel.getBoundingClientRect();let top=rect.top-box.height-10;if(top<8)top=Math.min(innerHeight-box.height-8,rect.bottom+10);guideLabel.style.left=`${Math.max(8,Math.min(innerWidth-box.width-8,rect.left))}px`;guideLabel.style.top=`${Math.max(8,top)}px`}
   function applyVisualPlan(plan, updateCurrent = true) {
     currentPlan = updateCurrent ? plan : currentPlan;
     clearVisualAttributes();
@@ -210,7 +220,7 @@
     styleElement.disabled = false;
     const uncertain = new Set(currentPlan.uncertain_refs || []);
     for (const item of currentPlan.elements || []) {
-      const node = refMap.get(item.ref);
+      const node = nodeForRef(item.ref);
       if (!node?.isConnected) continue;
       let classification = uncertain.has(item.ref) ? 'uncertain' : item.final_classification || item.classification || 'preserved';
       if (currentPlan.current_ref === item.ref) classification = 'current';
@@ -219,6 +229,7 @@
       if (target !== node) { target.setAttribute('data-guidemode', classification); target.setAttribute('data-guidemode-proxy', item.ref); touched.add(target); }
       if (classification === 'current') { node.setAttribute('data-guidemode-current', 'true'); target.setAttribute('data-guidemode-current', 'true'); }
     }
+    const guide=currentPlan.guide_state;let primaryTarget=null;if(guide?.target?.ref){const primary=nodeForRef(guide.target.ref);if(primary?.isConnected){primaryTarget=labelIsUsable(primary)&&!isRendered(primary)?[...(primary.labels||[])].find(isRendered)||primary:primary;primaryTarget.setAttribute('data-guidemode','current');primaryTarget.setAttribute('data-guidemode-current','true');touched.add(primaryTarget);const rect=primaryTarget.getBoundingClientRect();if(rect.bottom<0||rect.top>innerHeight||rect.right<0||rect.left>innerWidth)primaryTarget.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center',inline:'nearest'});requestAnimationFrame(()=>positionGuideLabel(primaryTarget,guide.instruction||guide.target.name))}}for(const ref of (guide?.supportingRefs||[]).slice(0,5)){const supporting=nodeForRef(ref);if(supporting?.isConnected&&supporting!==primaryTarget){supporting.setAttribute('data-guidemode','supporting');touched.add(supporting)}}
   }
   function setVisualMode(enabled) {
     visualEnabled = Boolean(enabled);
@@ -346,6 +357,9 @@
     return { action_success: success, executor_strategy: stillConnected ? strategy : 'rerender-tolerated', dom_detached_during_action: !stillConnected, target_name: control.name,
       executor_ms: Math.round((performance.now() - executorStarted) * 10) / 10, settle_wait_ms: Math.round((performance.now() - settleStarted) * 10) / 10 };
   }
+
+  let changeTimer=null;function notifyPageChanged(){clearTimeout(changeTimer);changeTimer=setTimeout(()=>{const pending=chrome.runtime.sendMessage?.({type:MSG.PAGE_CHANGED,url:location.href});pending?.catch?.(()=>{})},80)}
+  document.addEventListener('change',notifyPageChanged,true);document.addEventListener('input',notifyPageChanged,true);document.addEventListener('click',event=>{if(!event.target.closest?.('#guidemode-next-step'))notifyPageChanged()},true);addEventListener('popstate',notifyPageChanged);addEventListener('hashchange',notifyPageChanged);
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     (async () => {

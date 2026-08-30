@@ -1,7 +1,8 @@
-importScripts('shared/constants.js', 'shared/messages.js');
+importScripts('shared/constants.js', 'shared/messages.js', 'shared/guide-state.js');
 
 const C = globalThis.GuideModeConstants;
 const M = globalThis.GuideModeMessages;
+const G = globalThis.GuideModeGuideState;
 const sessions = new Map();
 const locks = new Set();
 let lastWebTabId = null;
@@ -14,7 +15,8 @@ const publicSession = session => session ? {
   semanticProgress: session.semanticProgress, visualMode: session.visualMode, paused: session.paused,
   stopped: session.stopped, createdAt: session.createdAt, debug: session.debug,
   connectionError: session.connectionError || null, lastExecution: session.lastExecution || null,
-  currentPlan: session.currentPlan || null, generation: session.generation || 1
+  currentPlan: session.currentPlan || null, guideState: session.guideState || G.idle(), mode: session.mode || C.MODE.AUTO,
+  generation: session.generation || 1
 } : null;
 
 async function persist(session) {
@@ -64,6 +66,11 @@ async function stopSession(session, reason = 'Stopped') {
 
 const terminal = session => session.stopped || [C.STATUS.COMPLETED, C.STATUS.IMPOSSIBLE, C.STATUS.STOPPED].includes(session.status);
 const activeGeneration = (session, generation) => !terminal(session) && !session.paused && session.generation === generation;
+async function renderGuide(session) {
+  if (!session.goal || !session.guideState || session.guideState.status === 'idle' || !session.visualMode) return sendTab(session.tabId,{type:M.CLEAR_PLAN}).catch(()=>{});
+  return sendTab(session.tabId,{type:M.APPLY_PLAN,plan:{...(session.currentPlan||{elements:[],uncertain_refs:[]}),guide_state:session.guideState,current_ref:session.guideState.target?.ref||null},enabled:true}).catch(()=>{});
+}
+function completeGuidedStep(session,observation,verification){const prior=session.guideState;const completed={stepNumber:prior.stepNumber,instruction:prior.instruction,targetName:prior.target?.name,verifiedAt:new Date().toISOString(),evidence:{semanticProgress:verification.semanticProgress,urlChanged:verification.urlChanged,headingChanged:verification.headingChanged}};session.completedSteps=[...(session.completedSteps||[]),completed];prior.completedSteps=session.completedSteps;prior.awaitingUser=false;session.lastExecution={action_success:true,semantic_progress:true,previous_progress_signature:prior.expected.previousSignature,new_progress_signature:observation.progress_signature,previous_url:prior.expected.previousUrl,next_url:observation.page.url,user_performed:true};session.semanticProgress=true;session.currentAction=null;message(session,`Completed: ${prior.instruction}`)}
 
 async function runLoop(session) {
   if (locks.has(session.tabId) || terminal(session) || session.paused) return;
@@ -78,6 +85,7 @@ async function runLoop(session) {
       if (!activeGeneration(session, generation)) break;
       if (!observationResponse?.ok) throw new Error(observationResponse?.error || 'Could not observe this page');
       const observation = observationResponse.observation;
+      if(session.mode===C.MODE.GUIDE&&session.guideState?.awaitingUser){const verification=G.verify(session.guideState,observation);if(verification.verified)completeGuidedStep(session,observation,verification);else if(verification.semanticProgress){session.lastExecution={action_success:false,semantic_progress:true,previous_progress_signature:session.guideState.expected.previousSignature,new_progress_signature:observation.progress_signature,execution_error:'User changed page state differently from the guided outcome'};session.guideState.awaitingUser=false;message(session,'The page changed, so I’m reconsidering the next step.')}else{if(verification.currentTarget)session.guideState.target.ref=verification.currentTarget.ref;session.guideState.observationId=observation.observation_id;session.guideState.supportingRefs=[];session.currentPlan={elements:[],uncertain_refs:[]};session.status=C.STATUS.GUIDING;await renderGuide(session);announce(session);return}}
       if (session.awaitingObservation && session.lastExecution) {
         session.lastExecution.new_progress_signature = observation.progress_signature;
         session.lastExecution.semantic_progress = observation.progress_signature !== session.lastExecution.previous_progress_signature;
@@ -109,24 +117,29 @@ async function runLoop(session) {
       session.debug.replans = decision.replans || session.debug.replans;
 
       const plan = decision.focus_plan;
-      if (plan) session.currentPlan = { ...plan, current_ref: decision.action?.ref || null };
-      if (session.currentPlan && session.visualMode) await sendTab(session.tabId, { type: M.APPLY_PLAN, plan: session.currentPlan, enabled: true }).catch(() => {});
+      if (plan) session.currentPlan = plan;
 
       if (['impossible','completed','step_limit','error'].includes(decision.status)) {
         session.status = decision.status === 'impossible' ? C.STATUS.IMPOSSIBLE : decision.status === 'completed' ? C.STATUS.COMPLETED : C.STATUS.STOPPED;
         session.stopped = true;
+        session.guideState={...(session.guideState||G.idle()),goal:session.goal,status:decision.status==='impossible'?'impossible':'completed',target:null,awaitingUser:false,instruction:decision.message||'',explanation:decision.message||'',supportingRefs:decision.evidence_refs||session.guideState?.supportingRefs||[],completedSteps:session.completedSteps||[]};await renderGuide(session);
         message(session, decision.message || (decision.status === 'impossible' ? "I couldn't find a safe path matching that goal." : 'GuideMode has stopped.'));
         session.generation++; session.abortController?.abort(); announce(session); break;
       }
       if (decision.status === 'needs_human' || decision.pause) {
         session.paused = true; session.status = C.STATUS.PAUSED; session.currentAction = decision.action || null;
+        if(decision.action)session.guideState=G.create({goal:session.goal,mode:session.mode,stepNumber:session.step,decision,observation,focusPlan:plan,completedSteps:session.completedSteps||[]});
+        if(session.guideState){session.guideState.status='waiting_for_user';session.guideState.awaitingUser=true}await renderGuide(session);
         message(session, decision.message || "You're at a step that needs your review. Please complete it yourself, then press Continue.");
         announce(session); break;
       }
       if (!decision.action) throw new Error('Agent server returned no bounded action');
       session.currentAction = decision.action;
+      session.guideState=G.create({goal:session.goal,mode:session.mode,stepNumber:session.step,decision,observation,focusPlan:plan,completedSteps:session.completedSteps||[]});
       session.debug.lastAction = decision.action.action;
       session.debug.targetName = decision.target_name || decision.action.reason || decision.action.ref;
+      await renderGuide(session);
+      if(session.mode===C.MODE.GUIDE){session.status=C.STATUS.GUIDING;session.guideState.awaitingUser=true;message(session,session.guideState.instruction);announce(session);return}
       message(session, decision.message || decision.action.reason || 'Working on the next step…'); announce(session);
 
       const executed = await sendTab(session.tabId, { type: M.EXECUTE, action: { ...decision.action, observation_id: decision.observation_id } });
@@ -162,6 +175,7 @@ async function runLoop(session) {
       session.debug.actionSuccess = Boolean(executed.result?.action_success);
       session.debug.semanticProgress = progress;
       session.debug.executorMs = executed.result?.executor_ms || 0; session.debug.settleWaitMs = executed.result?.settle_wait_ms || 0;
+      if(progress&&session.guideState){session.completedSteps=[...(session.completedSteps||[]),{stepNumber:session.guideState.stepNumber,instruction:session.guideState.instruction,targetName:session.guideState.target?.name,verifiedAt:new Date().toISOString()}];session.guideState.completedSteps=session.completedSteps}
       session.currentAction = null;
       announce(session);
     }
@@ -186,8 +200,9 @@ async function activeTab() {
   return tab;
 }
 
-chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   (async () => {
+    if(request.type===M.PAGE_CHANGED&&sender.tab?.id){const session=await getSession(sender.tab.id);if(session?.mode===C.MODE.GUIDE&&session.guideState?.awaitingUser&&!terminal(session))setTimeout(()=>runLoop(session),120);return{ok:true}}
     if (request.type === M.GET_STATE) {
       const tab = await activeTab(); return { ok: true, state: publicSession(await getSession(tab.id)), restricted: isRestricted(tab.url) };
     }
@@ -195,12 +210,13 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       const tab = await activeTab();
       if (isRestricted(tab.url)) throw new Error('GuideMode cannot run on browser settings or other restricted pages. Open an HTTP or HTTPS webpage.');
       if (!String(request.goal || '').trim()) throw new Error('Enter a goal first');
-      const existing = await getSession(tab.id); if (existing) await stopSession(existing, 'Previous GuideMode session stopped.');
+      const existing = await getSession(tab.id); if (existing) { await sendTab(tab.id,{type:M.CLEAR_PLAN}).catch(()=>{});await stopSession(existing,'Previous GuideMode session stopped.') }
       await server('/api/health');
       const session = {
-        sessionId: crypto.randomUUID(), tabId: tab.id, goal: String(request.goal).trim(), status: C.STATUS.RUNNING,
+        sessionId: crypto.randomUUID(), tabId: tab.id, goal: String(request.goal).trim(), status: C.STATUS.THINKING,
         step: 0, history: [], currentAction: null, semanticProgress: null, visualMode: request.visualMode !== false,
         paused: false, stopped: false, createdAt: new Date().toISOString(), generation: 1, lastExecution: null,
+        mode:request.mode===C.MODE.GUIDE?C.MODE.GUIDE:C.MODE.AUTO,guideState:{...G.idle(),goal:String(request.goal).trim(),status:'thinking'},completedSteps:[],
         debug: { currentUrl: tab.url, role: null, lastAction: null, targetName: null, actionSuccess: null, semanticProgress: null, replans: 0, latencyMs: null }
       };
       message(session, session.goal, 'user'); sessions.set(tab.id, session); announce(session); runLoop(session);
@@ -216,7 +232,7 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
     if (request.type === M.RETRY_CONNECTION) { await server('/api/health'); session.connectionError = null; return { ok: true }; }
     if (request.type === M.SET_VISUAL_MODE) {
       session.visualMode = Boolean(request.enabled);
-      await sendTab(session.tabId, session.visualMode && session.currentPlan ? { type: M.APPLY_PLAN, plan: session.currentPlan, enabled: true } : { type: M.CLEAR_PLAN }).catch(() => {});
+      if(session.visualMode)await renderGuide(session);else await sendTab(session.tabId,{type:M.CLEAR_PLAN}).catch(()=>{});
       announce(session); return { ok: true, state: publicSession(session) };
     }
     throw new Error('Unknown GuideMode command');

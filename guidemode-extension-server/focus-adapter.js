@@ -23,9 +23,11 @@ function reconcileFocusPlan(plan, previousElements, observation) {
   const uncertain_refs = (plan.uncertain_refs || []).map(ref => byKey.get(previousByRef.get(ref))).filter(Boolean);
   return { ...plan, elements, uncertain_refs, cache_hit: true };
 }
-async function planFocus({ ai, model, goal, observation }) {
+async function planFocus({ ai, model, goal, observation, nextStep = null }) {
   const elements = plannerObservation(observation);
-  const generated = await generateModelPlan(ai, model, { goal, page: observation.page, elements });
+  const target=(observation.controls||[]).find(item=>item.ref===nextStep?.ref)||(observation.routes||[]).find(item=>item.ref===nextStep?.ref)||(observation.forms||[]).find(item=>item.ref===nextStep?.ref);
+  const conditionedGoal=nextStep?`OVERALL USER GOAL: ${goal}\nCURRENT NEXT STEP: ${nextStep.reason||nextStep.action}\nPRIMARY TARGET: ${target?.name||target?.text||target?.purpose||nextStep.ref}. Safely reduce only information unrelated to both the goal and this current step. The primary target is controlled by Navigator.`:goal;
+  const generated = await generateModelPlan(ai, model, { goal:conditionedGoal, page: observation.page, elements });
   return { ...applySafetyOverrides(generated.plan, elements), prompt_version: PROMPT_VERSION, latency_ms: generated.latency_ms };
 }
 module.exports = { plannerObservation, planFocus, focusContextKey, reconcileFocusPlan };
