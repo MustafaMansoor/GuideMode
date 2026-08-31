@@ -14,7 +14,7 @@ Route Scout keeps links and GET forms separate from ordinary controls. It normal
 
 From the repository root:
 
-1. Run `npm install`.
+1. Run `npm ci` for the locked submission dependencies (`npm install` is acceptable during development).
 2. Copy `.env.example` to `.env` if it does not exist.
 3. Set `GEMINI_API_KEY` in `.env`. Never put the key in this extension directory.
 4. Run:

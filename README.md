@@ -17,6 +17,17 @@ Websites expose navigation, terminology, warnings, and workflow choices at once.
 
 GuideMode starts only after an explicit goal. It observes the current tab as bounded semantics, asks a Navigator for one safe next step, and verifies fresh browser state. A Replanner handles failures, stalls, and cycles. The visual layer focuses one current target while preserving critical, consequential, and uncertain information. With no goal, it makes no model calls and does not style, highlight, or scroll the page.
 
+## Guide Me vs Do It For Me
+
+| Mode | Who acts? | How progress advances |
+|---|---|---|
+| Guide Me | The user performs the highlighted ordinary action | GuideMode observes the page and advances only after semantic progress is verified |
+| Do It For Me | The bounded executor performs ordinary safe actions | The executor re-observes and verifies progress after every action |
+
+Both modes pause for authentication, personal data, CAPTCHA, payments, purchases, submissions, or other consequential boundaries.
+
+## Architecture
+
 ```mermaid
 flowchart TD
  G[User goal] --> P[Extension side panel]
@@ -62,10 +73,10 @@ The model chooses only bounded actions using supplied opaque refs. It cannot pro
 
 This is a **+70 percentage-point** improvement and **3.33×** the baseline success rate. CivicPortal improved from v1's 4/6 to v2's 5/6. Focus Planner achieved 12/12 relevant-control recall and zero unsafe omissions. [RESULTS.md](RESULTS.md) is the canonical metrics source.
 
-## Try the extension
+## Browser extension
 
 ```powershell
-npm install
+npm ci
 npx playwright install chromium
 Copy-Item .env.example .env
 # Set GEMINI_API_KEY in .env
@@ -73,6 +84,10 @@ npm run extension:server
 ```
 
 Open `chrome://extensions` or `edge://extensions`, enable Developer mode, choose **Load unpacked**, and select `guidemode-extension/`. See [REPRODUCING.md](REPRODUCING.md).
+
+## Reproduce the results
+
+The controlled primary comparison does not depend on production websites. [REPRODUCING.md](REPRODUCING.md) provides clean-machine setup, exact baseline/final commands, expected non-zero evaluation exits for known failures, versions, runtime, and token/cost notes.
 
 ## Repository structure
 

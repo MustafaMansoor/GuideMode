@@ -6,11 +6,11 @@ This is the canonical metrics source. The primary metric is **task success rate*
 
 | System | Threadly success | Evidence |
 |---|---:|---|
-| Baseline v0 | 1/10 | [JSON](trajectories/baseline-evaluation-2026-08-29T17-29-33-995Z.json) |
+| Baseline v0 | 1/10 | [frozen JSON](trajectories/baseline-evaluation-2026-08-29T17-33-20-384Z.json) |
 | Fair Baseline v1 | 3/10 | [JSON](trajectories/fair-baseline-evaluation-2026-08-29T17-43-15-158Z.json) |
 | Agent Core v2 | 10/10 | [JSON](trajectories/agent-v2-threadly-evaluation-2026-08-29T19-34-03-568Z.json) |
 
-Fair Baseline v1 is official. v0 was unfair as the primary comparison because hidden-checkbox compatibility dominated six failures. v2 gained **70 percentage points** and achieved **3.33×** Fair Baseline's success rate.
+Fair Baseline v1 is official. It and the final runtime used the same ten frozen Threadly goals, fixtures, evaluator, website, and configured Gemini model; the baseline intentionally lacked v2's verification, recovery, progress, and replanning features. v0 was unfair as the primary comparison because hidden-checkbox compatibility dominated six failures. v2 gained **70 percentage points** and achieved **3.33×** Fair Baseline's success rate.
 
 ## Stable Agent Core v2
 
@@ -49,9 +49,9 @@ The frozen evaluator recorded Edenrobe 3/3 and GOV.UK 2/3: 5/6 nominal. Only **3
 - GOV.UK Guide Me: `SITE_INCOMPATIBLE` from the tested starting state.
 - A separate Route Scout run reached `/replace-a-driving-licence` in five steps. It is not the later Guide Me result.
 
-[GuideState JSON](guidemode-extension-server/trajectories/goal-conditioned-2026-08-30T18-17-17-986Z.json) · [Route Scout JSON](guidemode-extension-server/trajectories/route-scout-production-2026-08-30T12-26-54-836Z.json) · [screenshots](artifacts/guidemode-goal-conditioned-2026-08-30T18-17-27-440Z/)
+[Live Guide Me JSON](guidemode-extension-server/trajectories/goal-conditioned-2026-08-30T18-10-31-855Z.json) · [deterministic GuideState replay](guidemode-extension-server/trajectories/goal-conditioned-2026-08-30T18-17-17-986Z.json) · [Route Scout JSON](guidemode-extension-server/trajectories/route-scout-production-2026-08-30T12-26-54-836Z.json) · [screenshots](artifacts/guidemode-goal-conditioned-2026-08-30T18-17-27-440Z/)
 
-Lifecycle/performance optimization reduced constrained Threadly model latency 41.211 s → 15.239 s (63.0%) and Focus Planner calls 5 → 1 (80%). Local health median was ~1.04 ms; WebSocket was not added. Edenrobe stale-ref reproduction returned structured `STALE_REF` without navigation/server failure.
+Lifecycle/performance optimization reduced constrained Threadly model latency 41.211 s → 15.239 s (63.0%) and Focus Planner calls 5 → 1 (80%). The optimized five-step run and planner-cache behavior are preserved in the [live extension trajectory](guidemode-extension-server/trajectories/live-agent-extension-2026-08-30T15-48-15-633Z.json); the before-run aggregate and ~1.04 ms localhost health median were recorded in engineering test notes, not a standalone raw artifact. Because localhost transport was negligible, WebSocket was not added. Edenrobe's [stale-ref reproduction](guidemode-extension-server/trajectories/route-scout-production-2026-08-30T15-52-18-572Z.json) returned structured `STALE_REF` without navigation or server failure.
 
 ## Rejected experiments
 

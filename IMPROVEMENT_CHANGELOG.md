@@ -16,7 +16,7 @@ A simple agent without verification-driven replanning or impossible reasoning.
 ### Why
 Create a comparison.
 ### Evidence
-1/10; hidden-checkbox compatibility dominated six failures. [JSON](trajectories/baseline-evaluation-2026-08-29T17-29-33-995Z.json).
+1/10; hidden-checkbox compatibility dominated six failures. [Frozen JSON](trajectories/baseline-evaluation-2026-08-29T17-33-20-384Z.json).
 ### Decision / learning
 Do not use it as the primary fairness comparison.
 
@@ -136,7 +136,7 @@ Observation IDs/generations, exact snapshots, single-flight sessions, terminal a
 ### Why
 Fix `unknown ref r155` after visible completion.
 ### Evidence
-Real Edenrobe reproduction returned `STALE_REF` without navigation/server failure. Commit `569a30c60df5b061e8185b295af6d0330e7f8637`.
+Real Edenrobe reproduction returned `STALE_REF` without navigation/server failure. [JSON](guidemode-extension-server/trajectories/route-scout-production-2026-08-30T15-52-18-572Z.json). Commit `569a30c60df5b061e8185b295af6d0330e7f8637`.
 ### Decision / learning
 Refs are `(observation, ref)` pairs; terminal state is atomic.
 
@@ -146,7 +146,7 @@ Focus-plan caching, cheap target updates, safe parallelism, smart settle, and bo
 ### Why
 Profiling showed model calls dominated latency.
 ### Evidence
-Threadly model latency 41.211 s → 15.239 s (63%); planner calls 5 → 1 (80%); localhost median ~1.04 ms.
+Threadly model latency 41.211 s → 15.239 s (63%); planner calls 5 → 1 (80%); localhost median ~1.04 ms. The optimized run is preserved in [JSON](guidemode-extension-server/trajectories/live-agent-extension-2026-08-30T15-48-15-633Z.json); the before aggregate and health median come from engineering test notes rather than a standalone raw artifact.
 ### Decision / learning
 No WebSocket: transport was not the bottleneck.
 
@@ -156,7 +156,7 @@ GuideState driven by goal, Navigator next step, and verified progress; Guide Me 
 ### Why
 Generic page dimming was not sufficient guidance.
 ### Evidence
-Threadly Guide Me verified 5/5 manual transitions, 0 automatic actions, 0 irrelevant primary highlights; Civic lost-licence target passed; GOV.UK remained `SITE_INCOMPATIBLE`. [JSON](guidemode-extension-server/trajectories/goal-conditioned-2026-08-30T18-17-17-986Z.json) · [screenshots](artifacts/guidemode-goal-conditioned-2026-08-30T18-17-27-440Z/). Commit `ea941932b5320e99b54e527dc4d0d4240565355b`.
+Threadly Guide Me verified 5/5 manual transitions, 0 automatic actions, 0 irrelevant primary highlights, and one Focus Planner call in the live run; Civic lost-licence target passed in deterministic replay; GOV.UK remained `SITE_INCOMPATIBLE`. [Live JSON](guidemode-extension-server/trajectories/goal-conditioned-2026-08-30T18-10-31-855Z.json) · [replay JSON](guidemode-extension-server/trajectories/goal-conditioned-2026-08-30T18-17-17-986Z.json) · [screenshots](artifacts/guidemode-goal-conditioned-2026-08-30T18-17-27-440Z/). Commit `ea941932b5320e99b54e527dc4d0d4240565355b`.
 ### Decision / learning
 The differentiator is a temporary goal-specific interface around the current verified next step.
 

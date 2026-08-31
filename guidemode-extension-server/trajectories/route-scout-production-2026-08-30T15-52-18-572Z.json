@@ -1,0 +1,49 @@
+{
+  "run_id": "0266fafd-5dd9-486e-8c50-972e93b375b9",
+  "component": "guidemode-extension-route-scout-production",
+  "started_at": "2026-08-30T15:52:18.572Z",
+  "tests": [
+    {
+      "site": "GOV.UK",
+      "status": "site_incompatible",
+      "error": "worker.evaluate: Error: Could not establish connection. Receiving end does not exist."
+    },
+    {
+      "site": "Edenrobe",
+      "goal": "Help me find a blue men's shirt.",
+      "status": "observed",
+      "final_url": "https://edenrobe.com/",
+      "raw_links": 532,
+      "unique_routes": 160,
+      "forms": [
+        {
+          "method": "POST",
+          "purpose": "form",
+          "auto_submittable": false
+        },
+        {
+          "method": "GET",
+          "purpose": "form",
+          "auto_submittable": true
+        }
+      ],
+      "get_filter_form_found": true,
+      "stale_route_recovery": {
+        "ok": false,
+        "action_success": false,
+        "code": "STALE_REF",
+        "ref": "r1",
+        "action": "navigate_route",
+        "observationId": "6bd31da0-7576-4063-81c9-687c2a8590c6",
+        "latestObservationId": "ff9ea6eb-c93a-4aca-ad66-64086602070d",
+        "recoverable": true,
+        "execution_failure_type": "stale_ref",
+        "execution_error": "Ref is from an expired observation"
+      },
+      "restore_preserved_state": true,
+      "prohibited_actions_executed": 0,
+      "note": "No filter submission claimed unless native GET form semantics exist; no cart or checkout."
+    }
+  ],
+  "finished_at": "2026-08-30T15:52:51.129Z"
+}

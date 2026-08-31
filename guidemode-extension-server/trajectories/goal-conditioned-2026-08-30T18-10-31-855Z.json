@@ -1,0 +1,48 @@
+{
+  "run_id": "bdb39e05-1a3d-4919-a0e5-6bda2be53c93",
+  "component": "goal-conditioned-guidemode-live",
+  "started_at": "2026-08-30T18:10:31.855Z",
+  "tests": [
+    {
+      "id": "threadly-guide-me",
+      "status": "pass",
+      "transitions": [
+        {
+          "instruction": "Choose Men",
+          "target": "Men",
+          "supporting_count": 5,
+          "verified": true
+        },
+        {
+          "instruction": "Choose Shirts",
+          "target": "Shirts",
+          "supporting_count": 5,
+          "verified": true
+        },
+        {
+          "instruction": "Choose S",
+          "target": "S",
+          "supporting_count": 5,
+          "verified": true
+        },
+        {
+          "instruction": "Choose Blue",
+          "target": "Blue",
+          "supporting_count": 5,
+          "verified": true
+        },
+        {
+          "instruction": "Enter the requested value in Up to $150",
+          "target": "Up to $150",
+          "supporting_count": 5,
+          "verified": true
+        }
+      ],
+      "irrelevant_primary_highlights": 0,
+      "verified_transitions": 5,
+      "focus_planner_calls": 1,
+      "automatic_actions": 0
+    }
+  ],
+  "finished_at": "2026-08-30T18:11:04.186Z"
+}

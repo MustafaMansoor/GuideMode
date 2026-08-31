@@ -23,6 +23,7 @@
 - [x] consequential actions human-controlled; synthetic/public data only
 - [x] no tracked credentials/private info; claims linked to evidence
 - [ ] **HUMAN:** choose repository license
-- [ ] **HUMAN:** replace `<submission-repository-url>` in `REPRODUCING.md`
+- [x] final GitHub clone URL is present in `REPRODUCING.md`
+- [x] submission branch is pushed to GitHub
 - [ ] **HUMAN:** verify pre-event internal-code disclosure against records outside git
 - [ ] **HUMAN:** upload repo, video, and trajectory bundle

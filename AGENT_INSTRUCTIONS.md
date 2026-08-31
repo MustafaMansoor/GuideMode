@@ -4,7 +4,7 @@ This indexes every final LLM role. Actual prompt strings/schemas remain in sourc
 
 ## Navigator
 
-Chooses exactly one safe action toward the explicit goal from bounded page semantics, recent progress, and actions to avoid. Outputs use supplied opaque refs only. Selectors, XPath, JavaScript, arbitrary URLs, evaluator truth, and consequential completion are forbidden. Deterministic code owns browser execution. Sources: [`agent-core-v2/index.js`](agent-core-v2/index.js) and extension adaptation [`guidemode-extension-server/v2-adapter.js`](guidemode-extension-server/v2-adapter.js).
+Chooses exactly one safe action toward the explicit goal from bounded page semantics, recent progress, and actions to avoid. The benchmark vocabulary is `click`, `check`, `uncheck`, `fill`, `select`, or an evidence-grounded `impossible` conclusion. The extension adapter additionally permits `scroll`, `focus`, observed `navigate_route`, safe observed-GET `submit_form`, and grounded information `answer`. Outputs use supplied opaque refs only. Selectors, XPath, JavaScript, arbitrary URLs, evaluator truth, and consequential completion are forbidden. Deterministic code owns browser execution. Sources: [`agent-core-v2/index.js`](agent-core-v2/index.js) and extension adaptation [`guidemode-extension-server/v2-adapter.js`](guidemode-extension-server/v2-adapter.js).
 
 ## Replanner
 

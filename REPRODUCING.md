@@ -36,6 +36,8 @@ Set `GEMINI_API_KEY` and `GEMINI_MODEL=gemini-3.5-flash-lite` in `.env`. The def
 
 Threadly is `index.html`; CivicPortal is `civic-portal/index.html`. Harnesses open both with `file://`, so no site server is needed.
 
+The Fair Baseline and Agent Core v2 commands deliberately return a non-zero process exit when any evaluated task fails. Therefore the frozen Fair Baseline run exits non-zero at 3/10, and the combined v2 command exits non-zero at 10/10 Threadly plus 5/6 CivicPortal. This is expected: inspect the timestamped JSON files, which are written before exit, rather than interpreting that exit code as a setup crash.
+
 To run one complete domain only:
 
 ```powershell
