@@ -63,9 +63,14 @@ const server = http.createServer(async (request, response) => {
   } catch (error) { console.error(error); return json(response, 500, { error: error.message }, allowedOrigin); }
 });
 
-if (!process.env.GEMINI_API_KEY) { console.error('Missing GEMINI_API_KEY. Copy .env.example to .env and set the key.'); process.exit(1); }
+if (!process.env.GEMINI_API_KEY) { console.error('GuideMode Agent Server cannot start: GEMINI_API_KEY is missing. Copy .env.example to .env, add your key, then run npm run extension:server again.'); process.exit(1); }
 adapter = new ExtensionV2Adapter({ apiKey: process.env.GEMINI_API_KEY });
-server.listen(PORT, HOST, () => console.log(`GuideMode agent server listening at http://${HOST}:${PORT}`));
+server.listen(PORT, HOST, () => console.log([
+  'GuideMode Agent Server',
+  `Listening: http://${HOST}:${PORT}`,
+  `Model: ${adapter.model}`,
+  'Extension: ready to connect'
+].join('\n')));
 
 function shutdown() { for (const state of adapter.sessions.values()) saveTrajectory(state); server.close(() => process.exit(0)); }
 process.on('SIGINT', shutdown); process.on('SIGTERM', shutdown);

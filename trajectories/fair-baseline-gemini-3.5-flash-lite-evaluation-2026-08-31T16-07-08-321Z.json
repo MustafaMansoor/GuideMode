@@ -1,0 +1,976 @@
+{
+  "evaluation_id": "0a5148a0-2163-447f-bf46-1487efd625cd",
+  "architecture": "fair-baseline-v1",
+  "model": "gemini-3.5-flash-lite",
+  "prompt_version": "fair-baseline-v1",
+  "site": "file://C:/Users/Mustafa/Desktop/micro/mini-ecommerce-store/index.html",
+  "max_steps": 10,
+  "started_at": "2026-08-31T16:00:50.715Z",
+  "finished_at": "2026-08-31T16:07:08.320Z",
+  "tasks": [
+    {
+      "task_id": 1,
+      "goal": "Men's blue shirt, S, under $70",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true
+      },
+      "started_at": "2026-08-31T16:00:50.715Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "click",
+            "ref": "e13",
+            "value": null,
+            "reason": "Filter products for Men as requested"
+          },
+          "latency_ms": 1466,
+          "executed": false
+        }
+      ],
+      "gemini_calls": 1,
+      "errors": [
+        "click incompatible with radio"
+      ],
+      "retries": 0,
+      "passed": false,
+      "final_status": "error",
+      "failure_category": "invalid_action_for_role",
+      "failure_reason": "click incompatible with radio",
+      "final_observation": {
+        "checkpoint": {
+          "department": false,
+          "category": false,
+          "size": false,
+          "color": false,
+          "maxPrice": false
+        },
+        "result_count": 40
+      },
+      "agent_steps": 1,
+      "total_latency_ms": 1903,
+      "finished_at": "2026-08-31T16:00:52.617Z"
+    },
+    {
+      "task_id": 2,
+      "goal": "Women's black trousers, M, under $100",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true
+      },
+      "started_at": "2026-08-31T16:00:52.750Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "check",
+            "ref": "e14",
+            "value": null,
+            "reason": "Select Women filter to narrow down products for women."
+          },
+          "latency_ms": 15668,
+          "executed": true
+        },
+        {
+          "step": 2,
+          "action": {
+            "action": "check",
+            "ref": "e26",
+            "value": null,
+            "reason": "Filter by trousers to match the user's goal of finding trousers."
+          },
+          "latency_ms": 10002,
+          "executed": true
+        },
+        {
+          "step": 3,
+          "action": {
+            "action": "check",
+            "ref": "e29",
+            "value": null,
+            "reason": "Select size M to filter trousers by size."
+          },
+          "latency_ms": 1169,
+          "executed": true
+        },
+        {
+          "step": 4,
+          "action": {
+            "action": "check",
+            "ref": "e40",
+            "value": null,
+            "reason": "Select the Black color filter to find black trousers."
+          },
+          "latency_ms": 955,
+          "executed": true
+        },
+        {
+          "step": 5,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "100",
+            "reason": "Adjust the price slider to under $100 to meet the user's budget requirement."
+          },
+          "latency_ms": 987,
+          "executed": true
+        },
+        {
+          "step": 6,
+          "action": {
+            "action": "click",
+            "ref": "e56",
+            "value": null,
+            "reason": "Click on the matching product 'Wide Leg Studio Pant' to view details and add it to the bag."
+          },
+          "latency_ms": 11811,
+          "executed": false
+        }
+      ],
+      "gemini_calls": 6,
+      "errors": [
+        "click incompatible with img"
+      ],
+      "retries": 0,
+      "passed": false,
+      "final_status": "error",
+      "failure_category": "invalid_action_for_role",
+      "failure_reason": "click incompatible with img",
+      "final_observation": {
+        "checkpoint": {
+          "department": true,
+          "category": true,
+          "size": true,
+          "color": true,
+          "maxPrice": true
+        },
+        "result_count": 1
+      },
+      "agent_steps": 6,
+      "total_latency_ms": 53052,
+      "finished_at": "2026-08-31T16:01:45.802Z"
+    },
+    {
+      "task_id": 3,
+      "goal": "Men's white shirt, L, under $90",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true
+      },
+      "started_at": "2026-08-31T16:01:45.892Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": null,
+            "reason": "Select Men's category filter to narrow down products to men's shirts."
+          },
+          "latency_ms": 1230,
+          "executed": true
+        },
+        {
+          "step": 2,
+          "action": {
+            "action": "check",
+            "ref": "e20",
+            "value": null,
+            "reason": "Filter by shirts to find a white shirt for men."
+          },
+          "latency_ms": 8997,
+          "executed": true
+        },
+        {
+          "step": 3,
+          "action": {
+            "action": "check",
+            "ref": "e30",
+            "value": null,
+            "reason": "Select size L to filter the shirts by the user's requested size."
+          },
+          "latency_ms": 9212,
+          "executed": true
+        },
+        {
+          "step": 4,
+          "action": {
+            "action": "check",
+            "ref": "e41",
+            "value": null,
+            "reason": "The user is looking for a white shirt, so I need to check the White color filter."
+          },
+          "latency_ms": 997,
+          "executed": true
+        },
+        {
+          "step": 5,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "90",
+            "reason": "Adjust the price filter slider to show items under $90 as requested."
+          },
+          "latency_ms": 1102,
+          "executed": true
+        },
+        {
+          "step": 6,
+          "action": {
+            "action": "click",
+            "ref": "e56",
+            "value": null,
+            "reason": "Click on the Oxford Field Shirt product to view details and add to bag."
+          },
+          "latency_ms": 15857,
+          "executed": false
+        }
+      ],
+      "gemini_calls": 6,
+      "errors": [
+        "click incompatible with img"
+      ],
+      "retries": 0,
+      "passed": false,
+      "final_status": "error",
+      "failure_category": "invalid_action_for_role",
+      "failure_reason": "click incompatible with img",
+      "final_observation": {
+        "checkpoint": {
+          "department": true,
+          "category": true,
+          "size": true,
+          "color": true,
+          "maxPrice": true
+        },
+        "result_count": 1
+      },
+      "agent_steps": 6,
+      "total_latency_ms": 50488,
+      "finished_at": "2026-08-31T16:02:36.380Z"
+    },
+    {
+      "task_id": 4,
+      "goal": "Women's blue shirt, S, under $60",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "started_at": "2026-08-31T16:02:36.476Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "check",
+            "ref": "e14",
+            "value": "Women",
+            "reason": "Filter products by women's category to match the user goal."
+          },
+          "latency_ms": 1075,
+          "executed": true
+        },
+        {
+          "step": 2,
+          "action": {
+            "action": "check",
+            "ref": "e20",
+            "value": null,
+            "reason": "Filter by shirts to find a women's blue shirt."
+          },
+          "latency_ms": 15824,
+          "executed": true
+        },
+        {
+          "step": 3,
+          "action": {
+            "action": "check",
+            "ref": "e28",
+            "value": null,
+            "reason": "Select size S as requested in the goal"
+          },
+          "latency_ms": 942,
+          "executed": true
+        },
+        {
+          "step": 4,
+          "action": {
+            "action": "check",
+            "ref": "e44",
+            "value": null,
+            "reason": "Select the Blue color filter to narrow down products to blue shirts."
+          },
+          "latency_ms": 912,
+          "executed": true
+        },
+        {
+          "step": 5,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "60",
+            "reason": "Set the price filter to under $60 to find shirts matching the user's budget."
+          },
+          "latency_ms": 1011,
+          "executed": true
+        },
+        {
+          "step": 6,
+          "action": {
+            "action": "click",
+            "ref": "e56",
+            "value": null,
+            "reason": "Clear filters to start fresh, as current filters show 0 products."
+          },
+          "latency_ms": 878,
+          "executed": true
+        },
+        {
+          "step": 7,
+          "action": {
+            "action": "check",
+            "ref": "e14",
+            "value": null,
+            "reason": "Filter products by women's category to match the user goal."
+          },
+          "latency_ms": 1493,
+          "executed": true
+        },
+        {
+          "step": 8,
+          "action": {
+            "action": "check",
+            "ref": "e20",
+            "value": null,
+            "reason": "Filter by shirts to find women's blue shirts."
+          },
+          "latency_ms": 12963,
+          "executed": true
+        },
+        {
+          "step": 9,
+          "action": {
+            "action": "check",
+            "ref": "e28",
+            "value": null,
+            "reason": "Select size S for the shirt"
+          },
+          "latency_ms": 1010,
+          "executed": true
+        },
+        {
+          "step": 10,
+          "action": {
+            "action": "check",
+            "ref": "e44",
+            "value": null,
+            "reason": "Select the Blue color filter to narrow down the products to blue shirts."
+          },
+          "latency_ms": 4333,
+          "executed": true
+        }
+      ],
+      "gemini_calls": 10,
+      "errors": [],
+      "retries": 0,
+      "passed": false,
+      "final_status": "step_limit",
+      "failure_category": "max_steps_incomplete",
+      "failure_reason": "maximum steps ended without the required final filter state",
+      "final_observation": {
+        "checkpoint": {
+          "department": true,
+          "category": true,
+          "size": true,
+          "color": true,
+          "maxPrice": false
+        },
+        "result_count": 0
+      },
+      "agent_steps": 10,
+      "total_latency_ms": 66369,
+      "finished_at": "2026-08-31T16:03:42.845Z"
+    },
+    {
+      "task_id": 5,
+      "goal": "Men's trousers under $50",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "started_at": "2026-08-31T16:03:42.940Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": "Men",
+            "reason": "Select Men category to filter products for men."
+          },
+          "latency_ms": 5394,
+          "executed": true
+        },
+        {
+          "step": 2,
+          "action": {
+            "action": "check",
+            "ref": "e26",
+            "value": null,
+            "reason": "Filter by Trousers to find men's trousers."
+          },
+          "latency_ms": 1236,
+          "executed": true
+        },
+        {
+          "step": 3,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "50",
+            "reason": "Filter the men's trousers to be under $50 by adjusting the price slider."
+          },
+          "latency_ms": 1015,
+          "executed": true
+        },
+        {
+          "step": 4,
+          "action": {
+            "action": "check",
+            "ref": "e53",
+            "value": "50",
+            "reason": "Filter men's trousers under $50 by setting the price slider to Up to $50."
+          },
+          "latency_ms": 1149,
+          "executed": false
+        }
+      ],
+      "gemini_calls": 4,
+      "errors": [
+        "check incompatible with slider"
+      ],
+      "retries": 0,
+      "passed": false,
+      "final_status": "error",
+      "failure_category": "invalid_action_for_role",
+      "failure_reason": "check incompatible with slider",
+      "final_observation": {
+        "checkpoint": {
+          "department": true,
+          "category": true,
+          "maxPrice": true
+        },
+        "result_count": 0
+      },
+      "agent_steps": 4,
+      "total_latency_ms": 15389,
+      "finished_at": "2026-08-31T16:03:58.329Z"
+    },
+    {
+      "task_id": 6,
+      "goal": "Any small shirt under $80",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true
+      },
+      "started_at": "2026-08-31T16:03:58.418Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "check",
+            "ref": "e28",
+            "value": null,
+            "reason": "Filter products by size Small as requested."
+          },
+          "latency_ms": 1138,
+          "executed": true
+        },
+        {
+          "step": 2,
+          "action": {
+            "action": "check",
+            "ref": "e20",
+            "value": null,
+            "reason": "Filter by shirts to find a small shirt under $80"
+          },
+          "latency_ms": 3908,
+          "executed": true
+        },
+        {
+          "step": 3,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "80",
+            "reason": "Adjust the price slider to filter for items under $80 as requested."
+          },
+          "latency_ms": 1002,
+          "executed": true
+        },
+        {
+          "step": 4,
+          "action": {
+            "action": "click",
+            "ref": "e57",
+            "value": null,
+            "reason": "Click on the first shirt product to view details and select size."
+          },
+          "latency_ms": 1022,
+          "executed": false
+        }
+      ],
+      "gemini_calls": 4,
+      "errors": [
+        "click incompatible with img"
+      ],
+      "retries": 0,
+      "passed": false,
+      "final_status": "error",
+      "failure_category": "invalid_action_for_role",
+      "failure_reason": "click incompatible with img",
+      "final_observation": {
+        "checkpoint": {
+          "category": true,
+          "size": true,
+          "maxPrice": true
+        },
+        "result_count": 3
+      },
+      "agent_steps": 4,
+      "total_latency_ms": 16812,
+      "finished_at": "2026-08-31T16:04:15.230Z"
+    },
+    {
+      "task_id": 7,
+      "goal": "Blue clothing under $40",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "started_at": "2026-08-31T16:04:15.332Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "check",
+            "ref": "e44",
+            "value": null,
+            "reason": "Filter the products by selecting the Blue color option to meet the user's goal of finding blue clothing."
+          },
+          "latency_ms": 1143,
+          "executed": true
+        },
+        {
+          "step": 2,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "40",
+            "reason": "Adjust the price filter slider to filter clothing under $40 as requested."
+          },
+          "latency_ms": 1038,
+          "executed": true
+        },
+        {
+          "step": 3,
+          "action": {
+            "action": "check",
+            "ref": "e44",
+            "value": "Blue",
+            "reason": "The user wants blue clothing, so we need to ensure the Blue filter checkbox is checked."
+          },
+          "latency_ms": 1040,
+          "executed": true
+        },
+        {
+          "step": 4,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "40",
+            "reason": "Set the maximum price slider to $40 to find clothing under $40."
+          },
+          "latency_ms": 802,
+          "executed": true
+        },
+        {
+          "step": 5,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "40",
+            "reason": "Set the maximum price slider to $40 to find clothing under $40."
+          },
+          "latency_ms": 829,
+          "executed": true
+        },
+        {
+          "step": 6,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "40",
+            "reason": "Set the price slider to $40 to find clothing under $40."
+          },
+          "latency_ms": 837,
+          "executed": true
+        },
+        {
+          "step": 7,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "40",
+            "reason": "Set the price slider to $40 to find clothing under $40."
+          },
+          "latency_ms": 844,
+          "executed": true
+        },
+        {
+          "step": 8,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "40",
+            "reason": "Set the price slider to $40 to find clothing under $40 as requested by the user."
+          },
+          "latency_ms": 873,
+          "executed": true
+        },
+        {
+          "step": 9,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "40",
+            "reason": "Set the price slider to $40 to find clothing under $40."
+          },
+          "latency_ms": 5231,
+          "executed": true
+        },
+        {
+          "step": 10,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "40",
+            "reason": "Set the price slider to $40 to find clothing under $40."
+          },
+          "latency_ms": 970,
+          "executed": true
+        }
+      ],
+      "gemini_calls": 10,
+      "errors": [],
+      "retries": 0,
+      "passed": true,
+      "final_status": "impossible",
+      "failure_category": null,
+      "failure_reason": null,
+      "final_observation": {
+        "checkpoint": {
+          "color": true,
+          "maxPrice": true
+        },
+        "result_count": 0
+      },
+      "agent_steps": 10,
+      "total_latency_ms": 43423,
+      "finished_at": "2026-08-31T16:04:58.755Z"
+    },
+    {
+      "task_id": 8,
+      "goal": "Find a purple XXL shirt under $5",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "started_at": "2026-08-31T16:04:58.850Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "check",
+            "ref": "e31",
+            "value": "XL",
+            "reason": "Select the XXL size filter to find an XXL shirt."
+          },
+          "latency_ms": 1085,
+          "executed": true
+        },
+        {
+          "step": 2,
+          "action": {
+            "action": "check",
+            "ref": "e20",
+            "value": null,
+            "reason": "Filter by shirts to find a shirt as requested."
+          },
+          "latency_ms": 1155,
+          "executed": true
+        },
+        {
+          "step": 3,
+          "action": {
+            "action": "click",
+            "ref": "e9",
+            "value": null,
+            "reason": "I need to search for a purple XXL shirt under $5 using the search box."
+          },
+          "latency_ms": 1076,
+          "executed": false
+        }
+      ],
+      "gemini_calls": 3,
+      "errors": [
+        "click incompatible with searchbox"
+      ],
+      "retries": 0,
+      "passed": false,
+      "final_status": "error",
+      "failure_category": "invalid_action_for_role",
+      "failure_reason": "click incompatible with searchbox",
+      "final_observation": {
+        "checkpoint": {
+          "category": true,
+          "size": false,
+          "color": false,
+          "maxPrice": false
+        },
+        "result_count": 3
+      },
+      "agent_steps": 3,
+      "total_latency_ms": 12788,
+      "finished_at": "2026-08-31T16:05:11.638Z"
+    },
+    {
+      "task_id": 9,
+      "goal": "Show men's clothing (Men is already selected)",
+      "expected_final_state": {
+        "goal_status": "completed",
+        "match_exists": true,
+        "max_actions": 0
+      },
+      "started_at": "2026-08-31T16:05:11.736Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": null,
+            "reason": "Men's clothing is already selected and showing men's products."
+          },
+          "latency_ms": 996,
+          "executed": true
+        },
+        {
+          "step": 2,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": "Men",
+            "reason": "Men is already selected to show men's clothing"
+          },
+          "latency_ms": 1149,
+          "executed": true
+        },
+        {
+          "step": 3,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": "Men",
+            "reason": "Men is already selected as requested in the goal to show men's clothing."
+          },
+          "latency_ms": 26710,
+          "executed": true
+        },
+        {
+          "step": 4,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": "Men",
+            "reason": "Men's clothing is already selected by default and matches the goal of showing men's clothing."
+          },
+          "latency_ms": 24819,
+          "executed": true
+        },
+        {
+          "step": 5,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": "Men",
+            "reason": "Men is already selected to show men's clothing as requested."
+          },
+          "latency_ms": 964,
+          "executed": true
+        },
+        {
+          "step": 6,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": null,
+            "reason": "Men's clothing is already selected by default and checked to show men's products."
+          },
+          "latency_ms": 1056,
+          "executed": true
+        },
+        {
+          "step": 7,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": "Men",
+            "reason": "Men is already selected as the category to show men's clothing."
+          },
+          "latency_ms": 1014,
+          "executed": true
+        },
+        {
+          "step": 8,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": null,
+            "reason": "Men is already selected, and the user goal is to show men's clothing."
+          },
+          "latency_ms": 936,
+          "executed": true
+        },
+        {
+          "step": 9,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": "Men",
+            "reason": "Men's clothing is already selected by radio button e13 to show men's clothing."
+          },
+          "latency_ms": 1021,
+          "executed": true
+        },
+        {
+          "step": 10,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": null,
+            "reason": "Men is already selected, and the user goal is to show men's clothing."
+          },
+          "latency_ms": 1000,
+          "executed": true
+        }
+      ],
+      "gemini_calls": 10,
+      "errors": [],
+      "retries": 0,
+      "passed": false,
+      "final_status": "completed",
+      "failure_category": "unnecessary_actions",
+      "failure_reason": "already-satisfied goal required 0 actions; baseline took 10",
+      "final_observation": {
+        "checkpoint": {
+          "department": true
+        },
+        "result_count": 13
+      },
+      "agent_steps": 10,
+      "total_latency_ms": 85501,
+      "finished_at": "2026-08-31T16:06:37.237Z"
+    },
+    {
+      "task_id": 10,
+      "goal": "Men's small shirts under $70, but Small is disabled",
+      "expected_final_state": {
+        "goal_status": "impossible",
+        "match_exists": false
+      },
+      "started_at": "2026-08-31T16:06:38.350Z",
+      "steps": [
+        {
+          "step": 1,
+          "action": {
+            "action": "check",
+            "ref": "e13",
+            "value": "Men",
+            "reason": "Select Men category to filter products for men as requested by the user."
+          },
+          "latency_ms": 18138,
+          "executed": true
+        },
+        {
+          "step": 2,
+          "action": {
+            "action": "check",
+            "ref": "e20",
+            "value": "Shirts",
+            "reason": "The user wants men's shirts, so I need to check the Shirts filter."
+          },
+          "latency_ms": 943,
+          "executed": true
+        },
+        {
+          "step": 3,
+          "action": {
+            "action": "fill",
+            "ref": "e53",
+            "value": "70",
+            "reason": "The user wants shirts under $70, so adjust the price slider to $70."
+          },
+          "latency_ms": 1020,
+          "executed": true
+        },
+        {
+          "step": 4,
+          "action": {
+            "action": "click",
+            "ref": "e56",
+            "value": null,
+            "reason": "Since Small shirts are disabled, I will inspect the Oxford Field Shirt to check its available sizes and details."
+          },
+          "latency_ms": 1006,
+          "executed": false
+        }
+      ],
+      "gemini_calls": 4,
+      "errors": [
+        "click incompatible with img"
+      ],
+      "retries": 0,
+      "passed": false,
+      "final_status": "error",
+      "failure_category": "invalid_action_for_role",
+      "failure_reason": "click incompatible with img",
+      "final_observation": {
+        "checkpoint": {
+          "department": true,
+          "category": true,
+          "size": false,
+          "maxPrice": true
+        },
+        "result_count": 2
+      },
+      "agent_steps": 4,
+      "total_latency_ms": 29880,
+      "finished_at": "2026-08-31T16:07:08.230Z"
+    }
+  ],
+  "aggregate": {
+    "tasks_passed": 1,
+    "tasks_total": 10,
+    "success_percentage": 10,
+    "average_steps_per_task": 5.8,
+    "average_latency_ms_per_task": 37560.5,
+    "total_gemini_calls": 58,
+    "total_retries": 0,
+    "failures_grouped_by_reason": {
+      "invalid_action_for_role": 7,
+      "max_steps_incomplete": 1,
+      "unnecessary_actions": 1
+    }
+  }
+}

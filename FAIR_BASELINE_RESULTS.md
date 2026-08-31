@@ -1,4 +1,6 @@
-# Fair Baseline v1 evaluation
+# Fair Baseline v1 evaluation — historical Gemini 3.1 run
+
+> This 3/10 run is retained for auditability but is not the canonical submission baseline. The fresh same-model Gemini 3.5 baseline scored 1/10; see [RESULTS.md](RESULTS.md).
 
 Frozen run: `fair-baseline-evaluation-2026-08-29T17-43-15-158Z.json`
 

@@ -9,6 +9,35 @@ It is intended for people with low digital confidence, older adults navigating u
 
 The final benchmark runtime is frozen **Agent Core v2** (`ac958d97a549780876f5256a8f9e50e691187ee1`). The final product is the Manifest V3 extension using a v2-derived adapter. Agent Core v2.1 and v2.2 are preserved rejected experiments.
 
+## Quick Start — Browser Extension
+
+```text
+git clone https://github.com/MustafaMansoor/GuideMode.git
+cd GuideMode
+npm ci
+npx playwright install chromium
+```
+
+Create the local environment file:
+
+```powershell
+# Windows PowerShell
+Copy-Item .env.example .env
+```
+
+```sh
+# macOS/Linux
+cp .env.example .env
+```
+
+Set `GEMINI_API_KEY` in `.env`, then run:
+
+```text
+npm run extension:server
+```
+
+In Chrome (`chrome://extensions`) or Edge (`edge://extensions`), enable **Developer mode**, choose **Load unpacked**, and select `guidemode-extension/`. Open a normal webpage, open the GuideMode side panel, enter a goal, and choose **Guide Me** or **Do It For Me**. **No extension build step is required.**
+
 ## The problem
 
 Websites expose navigation, terminology, warnings, and workflow choices at once. The bottleneck for an unfamiliar task is often deciding what matters next—not merely clicking. This matters most where a mistake has financial, identity, or public-service consequences.
@@ -68,22 +97,14 @@ The model chooses only bounded actions using supplied opaque refs. It cannot pro
 
 | System | Threadly success |
 |---|---:|
-| Fair Baseline v1 | 3/10 (30%) |
+| Fair Baseline v1 | 1/10 (10%) |
 | Agent Core v2 | 10/10 (100%) |
 
-This is a **+70 percentage-point** improvement and **3.33×** the baseline success rate. CivicPortal improved from v1's 4/6 to v2's 5/6. Focus Planner achieved 12/12 relevant-control recall and zero unsafe omissions. [RESULTS.md](RESULTS.md) is the canonical metrics source.
+This is a **+90 percentage-point** improvement and **10×** the baseline success rate in the fresh same-model `gemini-3.5-flash-lite` evaluation. CivicPortal v2 scored 5/6. Focus Planner achieved 12/12 relevant-control recall and zero unsafe omissions. [RESULTS.md](RESULTS.md) is the canonical metrics source; the older Gemini 3.1 baseline remains historical evidence only.
 
 ## Browser extension
 
-```powershell
-npm ci
-npx playwright install chromium
-Copy-Item .env.example .env
-# Set GEMINI_API_KEY in .env
-npm run extension:server
-```
-
-Open `chrome://extensions` or `edge://extensions`, enable Developer mode, choose **Load unpacked**, and select `guidemode-extension/`. See [REPRODUCING.md](REPRODUCING.md).
+The extension is plain Manifest V3 code and is directly loadable from `guidemode-extension/`; the Gemini key remains only in the local Node server. The side panel reports **Server unavailable** with the command `npm run extension:server` instead of waiting indefinitely. See the Quick Start above and [REPRODUCING.md](REPRODUCING.md).
 
 ## Reproduce the results
 
@@ -92,6 +113,7 @@ The controlled primary comparison does not depend on production websites. [REPRO
 ## Repository structure
 
 ```text
+GuideMode/
 agent-core-v2/               final frozen benchmark runtime
 agent-core-v2.1/             rejected finish-validation experiment
 agent-core-v2.2/             rejected compatibility/context experiment
@@ -102,7 +124,11 @@ guidemode-extension-server/  local Gemini adapter
 production-eval/             frozen external manifest
 trajectories/                evaluation evidence
 artifacts/                   screenshots
+index.html, app.js            Threadly synthetic site
+README.md, RESULTS.md         judge-facing documentation
 ```
+
+**Final:** `agent-core-v2/` plus the GuideMode extension and server. **Rejected experiments:** `agent-core-v2.1/` and `agent-core-v2.2/`; they remain for auditability and are not recommended runtimes.
 
 ## Limitations and main failure mode
 

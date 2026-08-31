@@ -6,6 +6,24 @@ const { chromium } = require('playwright');
 
 (async () => {
   const extensionPath = path.resolve(__dirname, '..');
+  const repositoryPath = path.resolve(extensionPath, '..');
+  const manifestPath = path.join(extensionPath, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const referencedFiles = [
+    manifest.background?.service_worker,
+    manifest.side_panel?.default_path,
+    ...(manifest.content_scripts || []).flatMap(entry => [...(entry.js || []), ...(entry.css || [])])
+  ].filter(Boolean);
+  assert.equal(manifest.manifest_version, 3);
+  for (const relativePath of referencedFiles) {
+    assert.equal(path.isAbsolute(relativePath), false, `Manifest path must be relative: ${relativePath}`);
+    const resolved = path.resolve(extensionPath, relativePath);
+    assert(resolved.startsWith(`${extensionPath}${path.sep}`), `Manifest path escapes extension: ${relativePath}`);
+    assert(fs.existsSync(resolved), `Manifest file missing: ${relativePath}`);
+    const source = fs.readFileSync(resolved, 'utf8');
+    assert(!/C:[\\/]Users[\\/]Mustafa|Desktop[\\/]micro/i.test(source), `Local absolute path in ${relativePath}`);
+  }
+  assert(fs.existsSync(path.join(repositoryPath, 'guidemode-extension-server', 'server.js')), 'Extension server entrypoint missing');
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'guidemode-extension-'));
   const context = await chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium', headless: true,

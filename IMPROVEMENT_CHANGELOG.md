@@ -26,9 +26,9 @@ Added only associated-label activation for hidden controls.
 ### Why
 Remove a synthetic DOM compatibility confound.
 ### Evidence
-3/10, 7.4 steps/task, 74 calls. [JSON](trajectories/fair-baseline-evaluation-2026-08-29T17-43-15-158Z.json).
+The original Gemini 3.1 run scored 3/10 and remains [historical evidence](trajectories/fair-baseline-evaluation-2026-08-29T17-43-15-158Z.json). The fresh same-model submission run on Gemini 3.5 scored 1/10, 5.8 steps/task, and 58 calls. [Canonical JSON](trajectories/fair-baseline-gemini-3.5-flash-lite-evaluation-2026-08-31T16-07-08-321Z.json).
 ### Decision / learning
-Use this as the official baseline.
+Use the fresh 1/10 Gemini 3.5 run as the official baseline; never mix the historical 3.1 score into the headline comparison.
 
 ## Agent Core v1
 ### What we tried
@@ -76,7 +76,7 @@ Importable runtime, semantic content, rerender-tolerant execution, progress sign
 ### Why
 Address demonstrated Civic failures only.
 ### Evidence
-Threadly 10/10; CivicPortal 5/6. [Threadly](trajectories/agent-v2-threadly-evaluation-2026-08-29T19-34-03-568Z.json) · [Civic](trajectories/agent-v2-civic-evaluation-2026-08-29T19-34-03-568Z.json).
+The fresh Gemini 3.5 submission run scored Threadly 10/10 and CivicPortal 5/6. [Canonical Threadly](trajectories/agent-core-v2-threadly-gemini-3.5-flash-lite-evaluation-2026-08-31T16-08-01-515Z.json) · [canonical CivicPortal](trajectories/agent-core-v2-civicportal-gemini-3.5-flash-lite-evaluation-2026-08-31T16-08-01-515Z.json). Earlier frozen measurements remain historical evidence.
 ### Decision / learning
 Retain v2 as the final benchmark runtime; replanning earned its added latency.
 
@@ -163,3 +163,7 @@ The differentiator is a temporary goal-specific interface around the current ver
 ## Main failure mode
 
 GuideMode depends on useful website semantics. Custom controls, incomplete accessible names, ambiguous committed-result state, or unusual routing may leave insufficient evidence, requiring uncertainty/human intervention or causing a wrong workflow such as CivicPortal's expired-eight-month case.
+
+## Hot Take
+
+**More browser metadata is not necessarily better context.** In the recorded v2/v2.2 experiment, stable v2 scored 10/10 with 181,468 input tokens, 3.5 calls/task, and 18.24 s/task; v2.2 scored 9/10 with 627,413 input tokens, 5.0 calls/task, and 23.50 s/task. Extra geometry encouraged Gemini to interpret visually hidden but label-executable controls as unusable. This is historical experiment evidence, separate from the fresh same-model baseline comparison. The practical lesson is to expose task-relevant semantics, not every fact the browser runtime knows.
