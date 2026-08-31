@@ -12,8 +12,8 @@ Primary results use controlled local Threadly and CivicPortal pages. Production 
 ## Clean setup
 
 ```powershell
-git clone <submission-repository-url>
-cd mini-ecommerce-store
+git clone https://github.com/MustafaMansoor/GuideMode.git
+cd GuideMode
 npm ci
 npx playwright install chromium
 Copy-Item .env.example .env
